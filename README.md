@@ -48,7 +48,7 @@ Agents write fluent, well-cited pages that are sometimes wrong, and a page like 
 </picture>
 
 - **Read less.** Sources go in, a distilled and cited wiki comes out. You read the wiki and go to the original only where a decision turns on it.
-- **Learn it.** The vault works out what you have not retained, sets the curriculum, tutors you closed-book by voice or text, and grades you without flattery.
+- **Learn it.** The vault works out what you have not retained, sets the curriculum, teaches you by voice or text, then tests you and grades you without flattery.
 - **Ask it.** Query it like an advisor who did the reading. Anything you will act on passes the same verification gate before you see it.
 
 > [!NOTE]
@@ -171,7 +171,7 @@ If your harness cannot run isolated subagents, the skill still works and says so
 
 ## Your first hour
 
-**1. Scaffold the vault.** Ask for it, and answer the two questions it asks: where the vault should live, and what it is about.
+**1. Scaffold the vault.** Ask for it, and answer the three questions it asks: where the vault should live, what it is about, and enough about you to tune depth and framing.
 
 ```text
 Set up a knowledge vault about product management
@@ -284,12 +284,14 @@ Optional, and the reason a learner tolerates the cost.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/loop-dark.svg">
-  <img src="docs/assets/loop-light.svg" alt="Five stages: gap analysis, study document, vault-blind tutor, honest grade, back through the gate" width="100%">
+  <img src="docs/assets/loop-light.svg" alt="Five stages: gap analysis, tutor pack, vault-blind tutor, honest grade, back through the gate" width="100%">
 </picture>
 
-The tutoring session is vault-blind by design. It works only from the study document, so it cannot leak answers, and your recall is tested closed-book. Grading is blunt by instruction, because an inflated grade corrupts every scheduling decision after it. What you produce in a session returns through the same verification gate, with your own claims marked as hypothesis until they are checked.
+Ask for your curriculum and the vault designs one from its own gap analysis. Ask for the next topic and it generates a **tutor pack**: one self-contained file holding the tutor's instructions, a profile of you as the student, where you are in the syllabus, the teaching text, and the discussion questions. Hand that file to any conversational AI with a voice mode, or run it in text, and the session runs from it.
 
-Protocol and templates: [references/curriculum.md](references/curriculum.md).
+The tutor is vault-blind by design. It works only from the pack, so it cannot leak answers, and it teaches new material before asking you anything about it; nothing assumes you have read the sources. Only topics the curriculum already marks done are tested cold. Grading is blunt by instruction, because an inflated grade corrupts every scheduling decision after it. The tutor's written synthesis goes back into the inbox and re-enters through the same verification gate, with your own claims marked as hypothesis until they are checked.
+
+Protocol: [references/curriculum.md](references/curriculum.md). Pack and runbook templates: [references/vault-templates.md](references/vault-templates.md).
 
 ## How it compares
 
@@ -358,6 +360,13 @@ Where a harness lacks a capability, the skill names the degradation instead of h
 <summary><b>How is this different from pointing a RAG setup at my documents?</b></summary>
 
 Retrieval finds passages at query time and leaves the reading to the model, every time you ask. This does the reading once, writes down what it found, and checks that writing against the source. What you keep is a durable, human-readable artifact you can open in Obsidian, edit, and hand to someone else. The trade is cost: this is far more expensive up front and cheaper every time you use it after.
+
+</details>
+
+<details>
+<summary><b>Which AI do I hand the tutor pack to?</b></summary>
+
+Any of them. The pack is one Markdown file that carries its own instructions, so it works in whatever conversational product you already use, by upload or paste, voice or text. The tutor needs no vault access, no custom instructions and no project setup; it replies with a short readiness check, waits for you, and writes a structured synthesis at the end for you to drop back into the vault's inbox.
 
 </details>
 

@@ -401,11 +401,15 @@ a closed learning loop.
 
 1. **Gap analysis.** The vault knows what it covers, what is thin, and what the owner
    has engaged with. From that it designs a curriculum: what to study next and why.
-2. **Study documents.** For each session it writes a self-contained study document,
-   built for listening if the owner studies by voice.
-3. **Vault-blind tutoring.** The tutoring session works only from that study document.
-   It has no vault access, so it cannot leak answers or wander; the owner's recall is
-   tested closed-book, which is what makes the grading honest.
+2. **One tutor pack per topic.** A single self-contained file: how to teach, who the
+   student is, where they are in the curriculum, the teaching text written for
+   listening, and the discussion questions. The owner hands it to any conversational
+   AI, voice or text, and the session runs.
+3. **Vault-blind tutoring, teach-first.** The tutor works only from that pack. It has
+   no vault access, so it cannot leak answers or wander. It teaches new material
+   before asking anything about it, because the owner has not read the sources; only
+   topics the curriculum marks done are tested cold, against expected answers the
+   pack carries.
 4. **Honest grading.** The tutor grades understanding without flattery. An inflated
    grade corrupts every scheduling decision downstream.
 5. **The loop closes.** The graded session synthesis returns through the normal INGEST
@@ -413,8 +417,9 @@ a closed learning loop.
    analysis uses it, so the curriculum adapts to demonstrated mastery, not to
    completion.
 
-Full protocol and templates in `references/curriculum.md`. Optional: skip it unless the
-owner wants to learn the subject, not just store it.
+Full protocol in `references/curriculum.md`; the pack and runbook templates are in
+`references/vault-templates.md`. Optional: skip it unless the owner wants to learn
+the subject rather than store it.
 
 ## Self-improvement: log how the system itself behaves
 
@@ -463,7 +468,7 @@ is aggregating the pattern, so the same class will recur indefinitely.
 | `references/coverage-instrument.md` | Before validating an ingest. The measurable coverage bar: counters, closed-book exam, blind reader, exam pipeline tooling. |
 | `references/vault-gate.md` | Before running the whole-vault audit. |
 | `references/lint.md` | The lint check spec and fixture contract. |
-| `references/vault-templates.md` | At scaffold. Starter file contents, copied verbatim. |
+| `references/vault-templates.md` | At scaffold, and when generating a tutor pack. Starter file contents plus the pack template. |
 | `references/curriculum.md` | When the owner wants the learning loop. |
 | `references/validation-lessons.md` | With quality-loop. Three failure lessons the validators caught in production, and the rules they produced. |
 | `references/evidence.md` | When you want the research base for the design claims, stated with its limits. |
