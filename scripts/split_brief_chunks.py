@@ -92,28 +92,63 @@ def write_file(path, preamble, blocks):
         f.write("\n\n---\n\n".join(parts) + "\n")
 
 
-def verify_outputs(paths, qts, ncs):
-    """Check that the output files, and ONLY the output files, carry every
-    source block exactly once. Returns a list of problems (empty means clean).
+def normalize(text):
+    """Whitespace-insensitive block identity: trailing space per line and
+    leading/trailing blank lines carry no meaning; every other byte does."""
+    return "\n".join(l.rstrip() for l in text.split("\n")).strip()
+
+
+def expected_assignment(paths, qts, ncs, chunk_size):
+    """The exact block sequence each output file must carry: chunk k gets the
+    k-th contiguous slice of the QT sequence, the controls file gets every NC.
+    """
+    expected = {}
+    chunk_paths = [p for p in paths if "-chunk-" in os.path.basename(p)]
+    for k, start in enumerate(range(0, len(qts), chunk_size)):
+        expected[chunk_paths[k]] = qts[start:start + chunk_size]
+    if ncs:
+        expected[paths[-1]] = list(ncs)
+    return expected
+
+
+def verify_outputs(paths, preamble, qts, ncs, chunk_size):
+    """Check that every output file carries exactly its assigned blocks, in
+    order, byte-equal after whitespace normalization, under the source
+    brief's own preamble. Header presence alone is NOT enough: a truncated
+    or edited body, an edited preamble (it carries the tester's closed-book
+    contract), or a block parked in the wrong file must all fail here.
+
+    Returns a list of problems (empty means clean).
     """
     problems = []
-    seen = {"QT": [], "NC": []}
+    expected = expected_assignment(paths, qts, ncs, chunk_size)
     for path in paths:
         if not os.path.exists(path):
             problems.append(f"{path}: output file missing")
             continue
-        text = open(path, encoding="utf-8").read()
-        found = {"QT": [], "NC": []}
-        for prefix, num in re.findall(r"^## (QT|NC)(\d+)", text, re.M):
-            found[prefix].append(int(num))
-            seen[prefix].append(int(num))
-        print(f"  {os.path.basename(path)}: QT {found['QT']} NC {found['NC']}")
-    for prefix, source_blocks in (("QT", qts), ("NC", ncs)):
-        want = sorted(num for _, num, _ in source_blocks)
-        got = sorted(seen[prefix])
-        if got != want:
+        lines = open(path, encoding="utf-8").read().split("\n")
+        got_preamble, blocks = parse_blocks(lines)
+        if preamble and normalize(got_preamble or "") != normalize(preamble):
             problems.append(
-                f"BLOCK MISMATCH {prefix}: source has {want}, outputs carry {got}")
+                f"{path}: preamble differs from the brief "
+                f"(it carries the tester's contract and must be verbatim)")
+        want = expected.get(path, [])
+        got_ids = [(pr, n) for pr, n, _ in blocks]
+        want_ids = [(pr, n) for pr, n, _ in want]
+        if got_ids != want_ids:
+            problems.append(
+                f"{path}: blocks {[f'{pr}{n}' for pr, n in got_ids]} != assigned "
+                f"{[f'{pr}{n}' for pr, n in want_ids]}")
+        want_bodies = {(pr, n): normalize(text) for pr, n, text in want}
+        for pr, n, text in blocks:
+            key = (pr, n)
+            if key in want_bodies and normalize(text) != want_bodies[key]:
+                problems.append(
+                    f"{path}: {pr}{n} body differs from the brief "
+                    f"(truncated or edited under an intact header)")
+        print(f"  {os.path.basename(path)}: "
+              f"QT {[n for pr, n in got_ids if pr == 'QT']} "
+              f"NC {[n for pr, n in got_ids if pr == 'NC']}")
     return problems
 
 
@@ -162,7 +197,7 @@ def main():
     print(f"source QT {len(qts)} / NC {len(ncs)} -> "
           f"{len(paths) - (1 if ncs else 0)} chunk file(s)"
           f"{' + controls' if ncs else ''} in {out_dir}")
-    problems = verify_outputs(paths, qts, ncs)
+    problems = verify_outputs(paths, preamble, qts, ncs, args.chunk_size)
     if problems:
         for p in problems:
             print(p)

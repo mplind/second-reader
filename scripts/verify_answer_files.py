@@ -21,8 +21,11 @@ Each --file spec is  <path>:<PREFIX>:<first>:<last>  where PREFIX is QT or NC.
 Checks per file:
 - Exists and non-empty.
 - Exactly one '## <PREFIX><n>' header for every contiguous n in [first..last], no extras.
-- Exactly one '**ANSWER:**' and one '**WIKI SOURCE:**' per question.
-- Not truncated (all expected headers present at the tail too).
+- No foreign block headers (a '## NC3' inside a QT file is a contract breach).
+- INSIDE each block: exactly one '**ANSWER:**' and one '**WIKI SOURCE:**'
+  line, each with a non-empty value. Counted per block, never globally: a
+  file where one block carries two answers and another carries none has a
+  clean global count and two broken blocks.
 
 This catches the classic silent-truncation failure: a subagent that hit a
 budget cutoff writes a partial file that "looks fine" if you only check counts
@@ -36,16 +39,33 @@ ANS = "**ANSWER:**"
 SRC = "**WIKI SOURCE:**"
 
 
+HEADER = re.compile(r"^## ([A-Za-z]+)(\d+)\b")
+
+
 def check(path, prefix, first, last):
     problems = []
     if not os.path.exists(path):
         return [f"{path}: FILE MISSING"]
-    t = open(path, encoding="utf-8").read().split("\n")
-    hdrs = {}
-    for l in t:
-        m = re.match(rf"^## {prefix}(\d+)", l)
+    lines = open(path, encoding="utf-8").read().split("\n")
+
+    # Index every block header, whatever its prefix. A block ends at the
+    # next header of ANY prefix, so a foreign block never donates its
+    # lines to the block before it.
+    starts = []
+    for i, l in enumerate(lines):
+        m = HEADER.match(l)
         if m:
-            n = int(m.group(1))
+            starts.append((i, m.group(1), int(m.group(2))))
+
+    foreign = [f"{p}{n}" for _, p, n in starts if p != prefix]
+    if foreign:
+        problems.append(
+            f"{path}: foreign block header(s) {', '.join(foreign)} "
+            f"(this file's contract is {prefix} only)")
+
+    hdrs = {}
+    for _, p, n in starts:
+        if p == prefix:
             hdrs[n] = hdrs.get(n, 0) + 1
     expected = list(range(first, last + 1))
     if sorted(hdrs) != expected:
@@ -58,13 +78,27 @@ def check(path, prefix, first, last):
             f"{path}: duplicate headers (contract is exactly one per question): "
             + ", ".join(f"{prefix}{n} x{hdrs[n]}" for n in dups)
         )
-    n_ans = sum(1 for l in t if ANS in l)
-    n_src = sum(1 for l in t if SRC in l)
-    want = last - first + 1
-    if n_ans != want:
-        problems.append(f"{path}: ANSWER count {n_ans} != {want}")
-    if n_src != want:
-        problems.append(f"{path}: WIKI SOURCE count {n_src} != {want}")
+
+    # Per-block field check: exactly one non-empty ANSWER and one non-empty
+    # WIKI SOURCE inside every block. Never counted globally.
+    for idx, (start, p, n) in enumerate(starts):
+        if p != prefix:
+            continue
+        end = starts[idx + 1][0] if idx + 1 < len(starts) else len(lines)
+        block = lines[start:end]
+        shared = [l for l in block if ANS in l and SRC in l]
+        if shared:
+            problems.append(
+                f"{path}: {prefix}{n}: ANSWER and WIKI SOURCE share one line "
+                f"(the contract is one field per line)")
+        for marker, label in ((ANS, "ANSWER"), (SRC, "WIKI SOURCE")):
+            hits = [l for l in block if marker in l]
+            if len(hits) != 1:
+                problems.append(
+                    f"{path}: {prefix}{n}: {label} lines {len(hits)} != 1")
+            elif not hits[0].split(marker, 1)[1].strip():
+                problems.append(
+                    f"{path}: {prefix}{n}: {label} value is empty")
     return problems
 
 

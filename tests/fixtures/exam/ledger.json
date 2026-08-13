@@ -1,0 +1,14 @@
+{
+  "source": "tests/fixtures/exam/durable.txt",
+  "total_claims": 3,
+  "tiers": {"1": 2, "2": 1},
+  "claims": [
+    {"id": "C001", "chapter": 1, "claim": "First ride covered 42 km in one day",
+     "source_line": 1, "source_end": 1, "tier": 1, "kind": "assertion"},
+    {"id": "C002", "chapter": 1, "claim": "Production ran 1885-1892 at Coventry",
+     "source_line": 4, "source_end": 4, "tier": 1, "kind": "assertion"},
+    {"id": "C003", "chapter": 1, "claim": "Peak output of 700 machines a year, during the production run",
+     "source_line": 5, "source_end": 5, "tier": 2, "kind": "qualifier",
+     "conditions": "C002"}
+  ]
+}

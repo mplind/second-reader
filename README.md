@@ -13,8 +13,9 @@
 
 <p>Turn books, PDFs and transcripts into a cited knowledge vault that teaches you the subject and answers like an advisor.</p>
 
+[![CI][ci-shield]][ci-url]
 [![Agent Skills open standard][skills-shield]][skills-url]
-[![15 lint checks][lint-shield]][lint-url]
+[![16 lint checks][lint-shield]][lint-url]
 [![Python 3.9+][py-shield]][py-url]
 [![MIT license][mit-shield]][mit-url]
 
@@ -52,7 +53,7 @@ Agents write fluent, well-cited pages that are sometimes wrong, and a page like 
 - **Ask it.** Query it like an advisor who did the reading. Anything you will act on passes the same verification gate before you see it.
 
 > [!NOTE]
-> The vault is plain Markdown on your own machine. Nothing leaves it except research you explicitly ask for.
+> The vault is plain Markdown on your own machine, and the skill itself sends nothing anywhere. Your sources are read by whatever AI model runs your agent, local or cloud, so the privacy boundary is your choice of harness.
 
 ## Install
 
@@ -76,8 +77,8 @@ lint: fixtures/clean-vault
  1. wikilink-resolution    clean
  2. split-wikilinks        clean
  ...
-15. vault-walk             clean
-result: CLEAN (15 checks, 0 findings)
+16. vault-walk             clean
+result: CLEAN (16 checks, 0 findings)
 ```
 
 That is the shipped lint tool passing its own reference vault. Then start a session and ask for what you want:
@@ -236,7 +237,7 @@ Eight operations, in plain language. You do not need the names.
 | "Ingest this PDF into my vault" | The full loop: digest, lint, blind validation, repeat until a round is clean, then commit. |
 | "What does my vault say about X? Cite sources" | Answers from the wiki with citations, and files the answer back if it is worth keeping. |
 | "Audit my knowledge base, what is thin or unsourced?" | The whole-vault gate: cross-source defects that no single ingest can see. |
-| "Lint the vault" | 15 deterministic checks on links, frontmatter, orphans, index truth and currency. |
+| "Lint the vault" | 16 deterministic checks on links, frontmatter, orphans, index truth and currency. |
 | "Which gaps should I fill next?" | Names the specific sources or research that would close what is open. |
 | "Build me a study curriculum from my vault" | The learning loop below. |
 | "Resume where we left off" | Re-orients from the vault's own files, and reports anything that died mid-flight. |
@@ -304,7 +305,7 @@ Every project below does something adjacent. As of August 2026, from each projec
 | [wiki-skills](https://github.com/kfchou/wiki-skills) | partial: strong per-page audit, invoked separately, not a gate | — | — |
 | [LLM Wiki Newsroom](https://github.com/alfadur7/llm-wiki-newsroom) | partial: writer/reviewer separation with deterministic and qualitative gates; no source-cold re-read per claim | — | — |
 | [BrainQuest](https://github.com/Martin8O/BrainQuest) | — | — | partial: FSRS tutor over a read-only vault; mastery stays outside it |
-| **second-reader** | **mandatory, source-cold, loops to a clean round** | **closed-book exam, 95% with named residuals** | **graded sessions re-enter through the same gate** |
+| **second-reader** | **mandatory, source-cold, loops to a clean round** | **closed-book exam scored against its claim ledger, 95% with named residuals** | **graded sessions re-enter through the same gate** |
 
 Independent review exists elsewhere, and so do citation checking and vault tutors. second-reader requires all three and wires them together.
 
@@ -320,7 +321,7 @@ The cost is bounded. Validation cycles cap at 3 to 5 and then escalate to you, s
 
 Human readers hold on to the gist of a book and lose its exact propositions and qualifiers much sooner. A well-built summary can match or beat the full text on later tests of its main points ([the retention evidence](references/evidence.md), section 7).
 
-So the gate holds coverage at 95% with every shortfall named, and holds qualifier coverage to the same bar separately. Exceptions, boundary conditions and caveats go first when you compress to gist, and they are what decisions turn on.
+So the gate holds measured coverage, scored against the exam's claim ledger, at 95% with every shortfall named, and holds qualifier coverage to the same bar separately. Exceptions, boundary conditions and caveats go first when you compress to gist, and they are what decisions turn on.
 
 </details>
 
@@ -336,7 +337,7 @@ So the gate holds coverage at 95% with every shortfall named, and holds qualifie
 
 ## Limits and portability
 
-- **Coverage has limits.** A vault can hold 95% of a source's propositions and still lose something the original gives you for a decision. In the one relevant trial, surgeons decided better with full papers than with summaries, though other specialties did not ([the evidence base](references/evidence.md), section 7). Every claim carries its location, so the vault tells you where to go and read.
+- **Coverage has limits.** The score is measured against the exam's claim ledger, not against everything a source contains, and a vault can score 95% and still lose something the original gives you for a decision. In the one relevant trial, surgeons decided better with full papers than with summaries, though other specialties did not ([the evidence base](references/evidence.md), section 7). Every claim carries its location, so the vault tells you where to go and read.
 - **The model that runs it sets the ceiling.** A weaker model builds a weaker vault, and a validator from the same family as the writer shares some of its blind spots. Three things hold regardless. The mechanical layers are deterministic code, cross-model validation is the strongest option where your harness offers it, and you can re-run the loop against the same sources as models improve.
 - Validated on English sources. Other languages are untested.
 - Built and tested for single-writer vaults on one machine. Multi-machine sync is your problem, and git is the sane answer.
@@ -401,7 +402,7 @@ Yes, and the vault will be weaker for it. The validator only catches what the mo
 <details>
 <summary><b>Does anything leave my machine?</b></summary>
 
-Only research you explicitly ask for. Ingest never fetches URLs found inside your sources; it records them. Web research is a separate operation you authorize.
+The vault and the tooling are local and make no network calls of their own, and ingest never fetches URLs found inside your sources; it records them. Your sources are read by whatever AI model your harness runs, local or cloud, under that provider's terms. Web research is a separate operation you authorize.
 
 </details>
 
@@ -417,6 +418,8 @@ references/           the protocol in depth: quality loop, coverage instrument,
                       lessons, and the evidence base with its limits stated
 ops/lint.py           deterministic vault lint, copied into each vault at scaffold
 scripts/              closed-book exam pipeline: brief builder, splitter, verifiers
+tests/                regression suite and fixture-contract runner
+                      (python3 tests/run_tests.py, run by CI on every push)
 fixtures/             two vaults: clean-vault must pass lint, dirty-vault must fail
                       with documented findings, including a planted prompt injection
 examples/             a filled coverage report from a real, anonymized ingest
@@ -435,9 +438,11 @@ second-reader is by [Matt Lindsey](https://www.linkedin.com/in/mattlindsey/). Th
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+[ci-shield]: https://img.shields.io/github/actions/workflow/status/mplind/second-reader/ci.yml?style=flat-square&label=ci
+[ci-url]: https://github.com/mplind/second-reader/actions/workflows/ci.yml
 [skills-shield]: https://img.shields.io/badge/agent%20skills-open%20standard-D8A548?style=flat-square
 [skills-url]: https://agentskills.io
-[lint-shield]: https://img.shields.io/badge/lint-15%20checks-D8A548?style=flat-square
+[lint-shield]: https://img.shields.io/badge/lint-16%20checks-D8A548?style=flat-square
 [lint-url]: ops/lint.py
 [py-shield]: https://img.shields.io/badge/python-3.9%2B-4A5568?style=flat-square
 [py-url]: ops/lint.py

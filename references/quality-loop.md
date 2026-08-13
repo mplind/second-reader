@@ -44,11 +44,12 @@ bookkept vault leaks exactly what it must not see. Bookkeeping stays gate-blocki
 it blocks the COMMIT, not the sign-off:
 
 ```
-digest -> lint -> fix mechanical -> lint clean
+digest -> lint (--phase content) -> fix mechanical -> lint clean
    -> VALIDATE CONTENT (blind; no bookkeeping beyond the in-progress row exists yet;
       re-reads source cold)
-   -> [clean]? -> BOOKKEEP (orchestrator writes index/sources/log/open-loops/synthesis +
-      coverage report to ops/ledger/<source>-claims.md)
+   -> [clean]? -> BOOKKEEP (orchestrator writes index/sources/log/open-loops/
+      contradictions/synthesis from the digest's payload + coverage report to
+      ops/ledger/<source>-claims.md)
    -> VALIDATE BOOKKEEPING (FRESH agent, audits index/sources/log/open-loops/synthesis
       against the FINAL page state) -> [clean]? -> commit
 ```
@@ -63,7 +64,9 @@ Each cycle:
 
 1. **Digest** writes into the vault and returns a coverage self-map.
 2. **Lint.** Run `ops/lint.py` (specified in `references/lint.md`). Fix mechanical defects.
-   No source reaches any validator mechanically dirty.
+   No source reaches any validator mechanically dirty. This is the content phase:
+   `ops/lint.py <vault> --phase content`, the checks that are legal while
+   bookkeeping is still stubs.
 3. **VALIDATE CONTENT (blind).** The content validator re-reads the source cold and audits
    the wiki content against the bar. It does NOT see the digest's self-map, and at this
    point no bookkeeping beyond the in-progress row exists (index/log/open-loops/synthesis
@@ -74,10 +77,13 @@ Each cycle:
    until a clean round.
 5. **BOOKKEEP (after content sign-off, before commit).** The orchestrator writes
    `index.md`, `sources.md`, `log.md` (ONE truthful entry with the real verdict), revises
-   `synthesis.md`, updates `open-loops.md`, bumps `updated:` on pages touched, and writes
+   `synthesis.md`, updates `open-loops.md` and `contradictions.md` from the digest's
+   return payload, bumps `updated:` on pages touched, and writes
    the coverage report to `ops/ledger/<source>-claims.md`. Entries referenced from pages
    ("logged in contradictions", "in open-loops") are written first.
-6. **VALIDATE BOOKKEEPING (fresh agent).** A separate, independent agent audits the
+6. **VALIDATE BOOKKEEPING (fresh agent).** Run the full lint first
+   (`ops/lint.py <vault>`, the default final phase; this is what "lint clean" means
+   at this gate). Then a separate, independent agent audits the
    bookkeeping against the FINAL page state: every "logged in X" / "in open-loops" has a
    real entry, sources.md statuses are truthful, log.md records a real verdict, the index
    catalogs everything, open-loops meets the open-loops quality bar, every contradiction
@@ -127,9 +133,9 @@ Then write into the vault:
 - **Enrich existing concept pages before creating new ones.**
 - **Create new atomic concept pages**, one concept each, for durable ideas the vault lacks.
 - **Create or update entity pages** for people, organizations, products, and recurring frameworks the source introduces.
-- **Log contradictions** to `wiki/contradictions.md`, and send open questions to `wiki/open-loops.md`.
+- **Record contradictions and open questions in the return payload.** They are written to `wiki/contradictions.md` and `wiki/open-loops.md` by the orchestrator at BOOKKEEP, after content sign-off, so the validator never reads the digest's account of what was contested.
 
-**IMPORTANT: The digest subagent does NOT touch bookkeeping.** It does not update `index.md`, `sources.md`, `log.md`, `synthesis.md`, or bump `updated:` dates. That is the orchestrator's job. The digest writes wiki page content and returns a coverage self-map.
+**IMPORTANT: The digest subagent does NOT touch bookkeeping.** It does not update `index.md`, `sources.md`, `log.md`, `synthesis.md`, `contradictions.md`, or `open-loops.md`, and does not bump `updated:` dates. That is the orchestrator's job. The digest writes wiki page content and returns a coverage self-map.
 
 Before returning, re-read what you wrote against the source and against the failure-mode checklist below.
 
@@ -330,21 +336,26 @@ The loop stops when a round finds nothing.
 Independence is bought with whatever isolation the runtime offers. Take the strongest
 rung available, and never describe a lower rung as more than it is.
 
-1. **Isolated subagent (the normal mode).** The validator is a separately spawned agent
+1. **Isolated subagent (independence level 2, the normal mode).** The validator is a separately spawned agent
    with its own context, receiving only the three inputs named in
    [What the validator receives](#what-the-validator-receives). This is independent
    validation.
-2. **Separate provider (optional, strongest).** Run the validation pass on a different
+2. **Separate provider (independence level 3, optional, strongest).** Run the validation pass on a different
    model from a different provider. Cross-model review removes shared-model blind spots
    as well as shared-context ones. Worth considering for high-stakes sources; never
    required.
-3. **Context fork.** If the runtime cannot spawn agents but can fork or reset context,
+3. **Context fork (independence level 1).** If the runtime cannot spawn agents but can fork or reset context,
    run validation as a fresh same-model pass in a clean context with only the permitted
    inputs. Weaker than a subagent, but still a genuinely cold read.
-4. **Single continuous context (degraded).** If none of the above is available, run the
+4. **Single continuous context (independence level 0, degraded).** If none of the above is available, run the
    procedure in [Running without subagents](#running-without-subagents). Record the
    result in the log and the verdict as a **degraded audit**. Never call it independent,
    because it is not.
+
+Every verdict and every log entry records the level it ran at, as
+`independence: level N (<rung name>)`. A coverage score without its level hides
+the strength of its own evidence, and the levels are not interchangeable: a
+level 0 pass and a level 3 pass are different claims.
 
 ## Running without subagents
 

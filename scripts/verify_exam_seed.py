@@ -9,7 +9,9 @@ the blinded brief, verify the two writer deliverables at their real paths:
    tier counts that
    sum to total_claims, and every source_line/source_end inside the
    durable-text bounds.
-2. The EXAM has contiguous ## QT# and ## NC# ranges, and every block carries
+2. The EXAM has contiguous ## QT# and ## NC# ranges, at least one NC block
+   (no controls means no honesty screen), every Target claim ID resolving to
+   a claim the ledger defines, and every block carrying
    real, answerable question PROSE plus exactly one each of Target claim IDs /
    Check / Correct (PASS|FAIL) / Wrong (FAIL): the prompt-presence gate. A
    block with only headers, tier metadata, and separators is NOT a usable
@@ -42,16 +44,31 @@ import os
 
 
 def verify_ledger(path, dur_lines=None):
+    try:
+        return _verify_ledger_parsed(path, dur_lines)
+    except Exception as e:
+        # A malformed ledger is a finding, not a crash: a traceback here
+        # would exit without the structured report downstream tooling gates on.
+        return [f"LEDGER: malformed structure ({type(e).__name__}: {e})"]
+
+
+def _verify_ledger_parsed(path, dur_lines=None):
     errs = []
     try:
         d = json.load(open(path, encoding="utf-8"))
     except Exception as e:
         return [f"LEDGER {path}: not valid JSON ({e})"]
+    if not isinstance(d, dict):
+        return ["LEDGER: top level must be a JSON object"]
     claims = d.get("claims", [])
+    if not isinstance(claims, list) or not all(isinstance(c, dict) for c in claims):
+        return ["LEDGER: 'claims' must be a list of objects"]
     n = d.get("total_claims")
     if n != len(claims):
         errs.append(f"LEDGER: total_claims {n} != len(claims) {len(claims)}")
     tiers = d.get("tiers", {})
+    if not isinstance(tiers, dict):
+        return errs + ["LEDGER: 'tiers' must be an object of tier -> count"]
     from collections import Counter
     # JSON tier-declaration keys are always strings; compare str(tier) so an
     # integer tier value in a claim still matches its declared count. Claims
@@ -74,7 +91,7 @@ def verify_ledger(path, dur_lines=None):
         errs.append("LEDGER: some IDs lack a trailing numeric index")
     elif nums and nums != list(range(1, len(nums) + 1)):
         errs.append(f"LEDGER: IDs not sequential 1..{len(nums)} -> {nums}")
-    if dur_lines:
+    if dur_lines is not None:
         bad = [c.get("id") for c in claims
                if not (1 <= c.get("source_line", 0) <= c.get("source_end", 0) <= dur_lines)]
         if bad:
@@ -101,6 +118,15 @@ def verify_ledger(path, dur_lines=None):
 
 
 def verify_exam(path):
+    try:
+        return _verify_exam_parsed(path)
+    except Exception as e:
+        # Same principle as the ledger: malformed or unreadable input is a
+        # finding with a structured report, never a traceback.
+        return [f"EXAM: unreadable or malformed ({type(e).__name__}: {e})"]
+
+
+def _verify_exam_parsed(path):
     errs = []
     lines = open(path, encoding="utf-8").read().split("\n")
     q_block = re.compile(r"^## (QT|NC)(\d+)")
@@ -143,6 +169,50 @@ def verify_exam(path):
     for start, p, num in starts:
         if p == "NC" and "[NEGATIVE CONTROL]" not in lines[start]:
             errs.append(f"EXAM: NC{num} missing '[NEGATIVE CONTROL]' header label")
+    if "NC" not in by_pref:
+        errs.append("EXAM: no negative control (NC) blocks; "
+                    "the honesty screen cannot run without them")
+    if "QT" not in by_pref:
+        errs.append("EXAM: no real (QT) question blocks; "
+                    "an exam of only controls tests nothing")
+    return errs
+
+
+def verify_exam_targets(exam_path, ledger_path):
+    """Foreign-key check: every 'Target claim IDs' entry in the exam must
+    name a claim that exists in the ledger. The ledger is the denominator
+    of the whole coverage gate; an exam aimed at IDs the ledger never
+    defined tests nothing while looking complete.
+    """
+    try:
+        d = json.load(open(ledger_path, encoding="utf-8"))
+        ids = {str(c.get("id")) for c in d.get("claims", []) if isinstance(c, dict)}
+    except Exception:
+        return []   # the ledger checks already report this failure
+    if not ids:
+        return []
+    try:
+        text = open(exam_path, encoding="utf-8").read()
+    except OSError:
+        return []   # the exam checks already report an unreadable file
+    targets, malformed = [], []
+    for m in re.finditer(r"Target claim IDs:\*\*\s*([^\n]+)", text):
+        for tok in re.split(r"[,\s]+", m.group(1).strip()):
+            if not tok:
+                continue
+            if re.fullmatch(r"[A-Za-z]+\d+", tok):
+                targets.append(tok)
+            else:
+                malformed.append(tok)
+    errs = []
+    if malformed:
+        # A token that cannot be a claim ID is reported, never dropped:
+        # dropping it turns a typo into a silently untested claim.
+        errs.append("EXAM: malformed target claim ID token(s): "
+                    + ", ".join(sorted(set(malformed))))
+    unknown = sorted(set(targets) - ids)
+    if unknown:
+        errs.append(f"EXAM: target claim IDs not in ledger: {', '.join(unknown)}")
     return errs
 
 
@@ -165,6 +235,7 @@ def main():
     # Prefix each error with the file it came from, not the ledger for all.
     errs += [f"{os.path.basename(ledger)}: {e}" for e in verify_ledger(ledger, dur_lines)]
     errs += [f"{os.path.basename(exam)}: {e}" for e in verify_exam(exam)]
+    errs += [f"{os.path.basename(exam)}: {e}" for e in verify_exam_targets(exam, ledger)]
     if errs:
         print("SEED VERIFICATION FAILED:")
         for e in errs:

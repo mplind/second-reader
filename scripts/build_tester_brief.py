@@ -35,14 +35,23 @@ import os
 from collections import Counter
 
 # Fragments that mark ANSWER KEY / metadata content. Ends the question body
-# when seen on a line. Control-tell WORDS ("bait", "adjacent real", ...) are
+# when seen on a line. This list must cover EVERY key/metadata field the exam
+# format defines, in any order the writer emits them: the seed gate does not
+# enforce field order, so a reordered key (a Wrong (FAIL) line first) must
+# still end the body. Control-tell WORDS ("bait", "adjacent real", ...) are
 # deliberately NOT here: a tell in a body line is rewritten below, never used
 # to silently drop the line and everything after it.
 BODY_ENDS = re.compile(
-    r"Target claim|Source location|Check:|Correct \(PASS\)|Correct \(FAIL\)"
-    r"|\*\*Correct\*\*",
+    r"Target claim|Source location|Check:|Correct \(|Wrong \("
+    r"|\*\*Correct\*\*|\*\*ANSWER:|\*\*WIKI SOURCE:"
+    r"|(?:\*\*)?Tier(?:\*\*)?\s*:",
     re.I,
 )
+# Prefix-matching is deliberate: "Correct (" instead of "Correct (PASS)" and an
+# unanchored Tier, because a malformed key line (a missing paren, a mid-line
+# tier tag) must still end the body. The cost is that question prose containing
+# one of these fragments truncates the body and fails the prose gate loudly,
+# which is the correct direction for a blinding gate to fail.
 NC_HEADER = re.compile(r"\s*\[NEGATIVE CONTROL\]\s*")
 Q_BLOCK = re.compile(r"^## (QT|NC)\d+")  # adapt to your exam's header scheme
 
@@ -145,9 +154,11 @@ def build_tester_brief(exam, out):
     # fails the gate instead of reaching the tester.
     leaked = [
         t for t in ["NEGATIVE CONTROL", "CONTROL-TELL", "Target claim", "Source location",
-                    "Correct (PASS)", "bait", "claim ID"]
+                    "Correct (", "Wrong (", "**Check:**", "bait", "claim ID"]
         if t.lower() in text.lower()
     ]
+    if re.search(r"(?i)(?:\*\*)?Tier(?:\*\*)?\s*:", text):
+        leaked.append("Tier: metadata")
     if not leaked and re.search(r"\[[^\]\n]*TELL\]", text, re.I):
         leaked.append("bracket-[*-TELL]-marker")
     # Verdict 2: assert every source block survived, per prefix. This is the

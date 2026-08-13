@@ -1,5 +1,7 @@
 ---
 name: second-reader
+metadata:
+  protocol: "0.2"
 description: Build and run a source-verified Markdown knowledge vault (opens as an Obsidian vault). Ingests books, PDFs, transcripts, and articles into atomic, cross-linked, cited notes, then gates every note and every answer behind an independent verification pass that re-reads the source cold and loops until a round finds nothing. Includes a closed learning loop, the vault designs a curriculum from its own gap analysis, runs vault-blind tutoring sessions (spoken or text), grades them, and feeds results back into the vault. Use when the user wants to build a knowledge base from sources, ingest material into a vault, query accumulated knowledge with cited answers, audit vault quality, find knowledge gaps, or study and learn a subject from their vault (the category some call a second brain). Not for one-off summarization, ordinary Markdown editing, generic note formatting, or casual capture. This skill is expensive by design and gates everything it writes.
 ---
 
@@ -295,13 +297,18 @@ hard rule 9, and it is not finished until lint is clean.
 
 **Dense cross-linking.** Link every concept, person, and organization that has, or
 should have, its own page, using `[[wikilinks]]`. A link to a page that does not exist
-yet is fine; it marks a page worth writing (log it in `open-loops.md`). Aim for links in
+yet is fine; it marks a page worth writing. During an ingest, record it in the
+digest's return payload and the bookkeep step writes it to `open-loops.md` (bookkeeping
+waits for content sign-off, so the validator stays blind); outside an ingest, write the
+entry directly. Aim for links in
 context, not a "related notes" dump at the bottom. Keep every `[[wikilink]]` on one
 line; Obsidian will not resolve a link split across a line break.
 
 **Synthesis over sources.** When several sources make the same point, write one page
 that cites all of them. When sources disagree, put both claims with their sources on the
-affected page, and log the conflict in `wiki/contradictions.md`.
+affected page and flag the conflict for `wiki/contradictions.md`: during an ingest,
+record it in the digest's return payload for the bookkeep step; outside an ingest,
+write the entry directly.
 
 **Separate fact from interpretation from hypothesis.** State sourced facts plainly with
 their citation. Mark your own interpretation as interpretation. Label a hypothesis as a
@@ -324,12 +331,14 @@ expensive by design; depth wins over speed. Run the full protocol in
    ~50 characters (the signature of an image-only page); confirm the author's name and
    the work's characteristic terms are present, because a mislabelled file produces an
    excellent synthesis of the wrong thing (see `references/validation-lessons.md`).
-   Write the result to `ops/ledger/<source>-conversion.md`. A conversion you cannot make
+   Write the result to `ops/ledger/<source>-conversion.md`, following the conversion
+   ledger contract in `references/coverage-instrument.md`. A conversion you cannot make
    right is a blocker to escalate, not a best-effort.
 1. **Digest.** A pass reads the source completely, chapter by chapter, and writes the
    vault pages. It does not touch bookkeeping. It returns a coverage self-map.
-2. **Lint.** Run `ops/lint.py`. Fix mechanical defects until clean. No source reaches a
-   validator mechanically dirty.
+2. **Lint, content phase.** Run `ops/lint.py <vault> --phase content`. Fix mechanical
+   defects until clean. The content phase runs only the checks that are legal while
+   bookkeeping is still empty; no source reaches a validator mechanically dirty.
 3. **Validate content, blind.** An independent pass re-reads the source cold and audits
    the wiki against the coverage instrument. It never sees the digest's self-map, and no
    bookkeeping exists yet for this source, so it cannot be anchored.
@@ -337,10 +346,12 @@ expensive by design; depth wins over speed. Run the full protocol in
    validator's findings into the next digest. Re-lint after every fix.
 5. **Bookkeep** (after content sign-off, before commit): the orchestrator writes
    `index.md`, `sources.md`, `log.md` (one truthful entry with the real verdict),
-   `synthesis.md`, `open-loops.md`, bumps `updated:` on pages touched, and writes the
+   `synthesis.md`, and, from the digest's return payload, `open-loops.md` and
+   `contradictions.md`, bumps `updated:` on pages touched, and writes the
    coverage report to `ops/ledger/<source>-claims.md` (never deleted). Entries
    referenced from pages are written first, then referenced.
-6. **Validate bookkeeping, fresh agent.** A separate pass audits the bookkeeping against
+6. **Validate bookkeeping, fresh agent.** Run the full lint (`ops/lint.py <vault>`,
+   the default final phase), then a separate pass audits the bookkeeping against
    the final page state. This blocks the commit. Contradiction propagation is part of
    this remit: every page that *acts on* a disputed claim carries its caveat, not only
    the pages that discuss it.

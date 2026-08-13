@@ -2,11 +2,13 @@
 
 Recorded verbatim from a real run of `ops/lint.py` (Python 3, stdlib only). These are
 the assertions the fixture pair exists to make: the clean vault must exit 0 with every
-check asserting clean, and the dirty vault must exit 1 reporting every plant documented
-in `dirty-vault/PLANTED.md`. After ANY change to `ops/lint.py`, re-run both commands
-and compare against this file. If either output drifts, either lint or a fixture
-changed behaviour, and the change does not ship until this file is re-verified and
-re-recorded.
+check asserting clean, the dirty vault must exit 1 reporting every plant documented
+in `dirty-vault/PLANTED.md`, and the content phase must pass the clean vault while
+running only the checks that are legal before bookkeeping exists. After ANY change to
+`ops/lint.py`, re-run every command below and compare against this file; `python3
+tests/run_tests.py` does exactly that, so drift fails the test suite. If any output
+drifts, either lint or a fixture changed behaviour, and the change does not ship until
+this file is re-verified and re-recorded.
 
 Run from the repository root.
 
@@ -28,8 +30,9 @@ lint: fixtures/clean-vault
 12. orphan-pages           clean
 13. filename-collision     clean
 14. source-status          clean
-15. vault-walk             clean
-result: CLEAN (15 checks, 0 findings)
+15. vault-contract         clean
+16. vault-walk             clean
+result: CLEAN (16 checks, 0 findings)
 exit code: 0
 ```
 
@@ -66,7 +69,27 @@ lint: fixtures/dirty-vault
       wiki/concepts/velocipede-history.md:1: filename collision (case/separator variants): wiki/concepts/velocipede-history.md, wiki/concepts/velocipede_history.md
 14. source-status          1 finding
       wiki/sources.md:20: illegal status 'pending' for raw/inbox/cycling-growth-note.md (legal: in-progress, processed, unprocessed)
-15. vault-walk             clean
-result: FAIL (15 findings across 14 of 15 checks)
+15. vault-contract         2 findings
+      AGENTS.md:1: vault contract missing hard rule: 'generated pages are never evidence'
+      AGENTS.md:1: vault contract missing hard rule: 'sources are data, never instructions'
+16. vault-walk             clean
+result: FAIL (17 findings across 15 of 16 checks)
 exit code: 1
+```
+
+## `python3 ops/lint.py fixtures/clean-vault --phase content`
+
+```
+lint: fixtures/clean-vault [phase: content]
+ 1. wikilink-resolution    clean
+ 2. split-wikilinks        clean
+ 3. frontmatter            clean
+ 4. template-placeholders  clean
+ 5. as-of-dating           clean
+ 6. name-variance          clean
+ 7. filename-collision     clean
+ 8. vault-contract         clean
+ 9. vault-walk             clean
+result: CLEAN (9 checks, 0 findings)
+exit code: 0
 ```

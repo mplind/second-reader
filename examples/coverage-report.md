@@ -10,6 +10,17 @@ lands in `ops/ledger/<source>-claims.md` at bookkeep time, and it is never delet
 
 ---
 
+```text
+SOURCE       Book B - raw/books/book-b.epub
+INGESTION    conversion verified | 214 claims extracted (31 qualifier-class)
+CONTENT      strict 94.1% / adjudicated 97.1% | qualifiers 100% (7/7) | controls 6/6
+VALIDATION   2 cycles | independence: level 2 (isolated subagent) | blind reader: 0 new findings
+RESIDUALS    1, named below | 1 adjudicated up, listed
+STATUS       SIGN-OFF - protocol 0.2, lint 0.2.0
+```
+
+---
+
 ## Cycle 1: VERDICT NEEDS-ANOTHER-PASS
 
 **Extractor claim count:** 214 atomic claims, of which 31 qualifier-class

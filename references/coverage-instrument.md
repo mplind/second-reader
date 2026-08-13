@@ -24,6 +24,7 @@ closed-book exam both pass on a SINGLE iteration.
 - [Named gap list vs scores](#resolving-report-a-named-gap-list-vs-report-scores)
 - [Persisting the coverage report](#persisting-the-coverage-report-never-deleted)
 - [Report format](#report-format-mandatory-every-source-no-exceptions)
+- [Conversion ledger contract](#conversion-ledger-contract)
 
 ---
 
@@ -562,7 +563,20 @@ comparison.
 
 ## Report format (MANDATORY, every source, no exceptions)
 
-Every source report contains, without exception:
+Every report opens with the verdict card: six lines a reader can absorb in ten
+seconds, with the full evidence underneath. The card never replaces the detail;
+it fronts it.
+
+```text
+SOURCE       <title> - <raw/ path>
+INGESTION    conversion verified | <N> claims extracted (<q> qualifier-class)
+CONTENT      strict <s>% / adjudicated <a>% | qualifiers <q>% | controls <k>/<k>
+VALIDATION   <c> cycles | independence: level <n> (<rung>) | blind reader: <m> findings
+RESIDUALS    <count>, each named below | <count> adjudicated up, listed
+STATUS       <SIGN-OFF or NEEDS-ANOTHER-PASS> - protocol <v>, lint <lint version>
+```
+
+Below the card, every source report contains, without exception:
 
 - claim count from the extractor, with the qualifier-class count broken out
 - tier distribution: CORE / CONTEXT / ARCHIVE
@@ -576,6 +590,27 @@ Every source report contains, without exception:
 - blind reader findings, itemised
 - THIN items and which second auditor cleared them (with reason)
 - cycles run, and the commit hash
+- the validator's independence level (the quality-loop ladder), as `level N (<rung>)`
+- the protocol version (from `SKILL.md` frontmatter) and `lint.py --version` output
+
+## Conversion ledger contract
+
+The conversion precondition (INGEST step 0) writes
+`ops/ledger/<source>-conversion.md`. Conversion sits inside the trusted chain: a
+perfect loop over a damaged conversion validates the damage. The entry therefore
+records, for every source:
+
+- the original file's SHA-256, byte size, and (where the format exposes it) page count
+- the converter used and its version
+- the durable text's SHA-256 and line count
+- page anchors: the durable text preserves source position markers as
+  `<!-- p.N -->` comment lines at every page or chapter boundary the format
+  exposes, so citations and exam source bounds resolve to a place a human can check
+- extraction warnings: every page under ~50 extracted characters (the image-only
+  signature), repeated header/footer strings, suspected encoding loss
+- the table and figure inventory, each with its preservation decision
+- the reconciliation sample: which distinctive values were checked against the
+  original, and the result
 
 **A verdict without these numbers is not a verdict.** The exam reports BOTH scores and
 the full adjudication list; a strict failure resolved into a pass is named item-by-item,
