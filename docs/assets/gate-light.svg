@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 470" width="1100" height="470" role="img">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%" stop-color="#FDFCFA"/>
+      <stop offset="100%" stop-color="#F4F1EC"/>
+    </linearGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D8A548"/>
+      <stop offset="100%" stop-color="#9A6B12"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D8A548" stop-opacity="0"/>
+      <stop offset="18%" stop-color="#D8A548" stop-opacity="0.85"/>
+      <stop offset="82%" stop-color="#D8A548" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#D8A548" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fade-r" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#D8D1C4" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#D8D1C4" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#D8D1C4" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6"
+                    flood-color="#000" flood-opacity="0.1"/>
+    </filter>
+    <filter id="lift" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="6" stdDeviation="16"
+                    flood-color="#000" flood-opacity="0.12"/>
+    </filter>
+    <filter id="halo" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+    <filter id="halo-sm" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <marker id="arw" viewBox="0 0 10 10" refX="8.5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9 z" fill="#98907F"/>
+    </marker>
+    <marker id="arw-a" viewBox="0 0 10 10" refX="8.5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9 z" fill="#9A6B12"/>
+    </marker>
+    <marker id="arw-no" viewBox="0 0 10 10" refX="8.5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9 z" fill="#AE3A33"/>
+    </marker>
+    <marker id="arw-ok" viewBox="0 0 10 10" refX="8.5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9 z" fill="#1E7A3C"/>
+    </marker>
+  </defs>
+<rect x="0" y="0" width="1100" height="470" rx="18" fill="url(#panel)"/><rect x="0.5" y="0.5" width="1099" height="469" rx="18" fill="none" stroke="#E2DCD1" stroke-width="1"/><text x="550.0" y="40" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#98907F" text-anchor="middle" letter-spacing="1.6">HOW THE GATE WORKS</text><rect x="56" y="176" width="118" height="128" rx="10" fill="#F0EDE7" stroke="#DCD5C9" stroke-width="1.2" filter="url(#soft)"/><line x1="65" y1="187" x2="165" y2="187" stroke="#98907F" stroke-width="2" stroke-linecap="round" opacity="0.55"/><line x1="65" y1="194.5" x2="165" y2="194.5" stroke="#98907F" stroke-width="2" stroke-linecap="round" opacity="0.55"/><line x1="65" y1="202.0" x2="165" y2="202.0" stroke="#98907F" stroke-width="2" stroke-linecap="round" opacity="0.55"/><line x1="65" y1="209.5" x2="165" y2="209.5" stroke="#98907F" stroke-width="2" stroke-linecap="round" opacity="0.55"/><line x1="65" y1="217.0" x2="165" y2="217.0" stroke="#98907F" stroke-width="2" stroke-linecap="round" opacity="0.55"/><line x1="65" y1="224.5" x2="123.0" y2="224.5" stroke="#98907F" stroke-width="2" stroke-linecap="round" opacity="0.55"/><text x="115" y="326" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1A1714" text-anchor="middle">The source</text><path d="M180 214 C226 196 232 172 260 166" fill="none" stroke="#98907F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arw)"/><path d="M180 268 C226 288 232 324 260 330" fill="none" stroke="#98907F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arw)"/><rect x="268" y="116" width="268" height="100" rx="14" fill="#FFFFFF" stroke="#E2DCD1" stroke-width="1.4" filter="url(#soft)"/><text x="290" y="144" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#9A6B12" letter-spacing="1.5">PASS 1</text><text x="290" y="172" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#1A1714">Digest</text><text x="290" y="194" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#6F675A">Writes the pages, lints them clean.</text><rect x="268" y="280" width="268" height="100" rx="14" fill="#FFFFFF" stroke="#9A6B12" stroke-width="1.8" filter="url(#soft)"/><text x="290" y="308" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#9A6B12" letter-spacing="1.5">PASS 2</text><text x="290" y="336" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#1A1714">Second reader</text><text x="290" y="358" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#6F675A">Re-reads the source cold.</text><line x1="212" y1="248" x2="580" y2="248" stroke="#98907F" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="7 7" opacity="0.9"/><rect x="300" y="234" width="204" height="28" rx="14.0" fill="#FDFCFA" stroke="#98907F" stroke-width="1.2"/><text x="402.0" y="252.14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#6F675A" text-anchor="middle">no shared context</text><path d="M542 158 C574 158 580 190 592 210" fill="none" stroke="#98907F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arw)"/><path d="M542 338 C574 338 580 300 592 272" fill="none" stroke="#98907F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arw)"/><rect x="600" y="196" width="128" height="92" rx="16" fill="#FFFFFF" stroke="#9A6B12" stroke-width="2" filter="url(#lift)"/><text x="664" y="234" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1A1714" text-anchor="middle">Verdict</text><text x="664" y="256" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#6F675A" text-anchor="middle">coverage</text><text x="664" y="271" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#6F675A" text-anchor="middle">and accuracy</text><path d="M734 226 L800 226" fill="none" stroke="#1E7A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arw-ok)"/><rect x="810" y="190" width="236" height="96" rx="14" fill="#FFFFFF" stroke="#1E7A3C" stroke-width="1.6" filter="url(#soft)"/><text x="832" y="222" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1A1714">Clean round</text><text x="832" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#6F675A">Bookkeeping is written, then</text><text x="832" y="264" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#6F675A">checked again, then committed.</text><path d="M664 292 L664 402 Q664 412 654 412 L242 412 Q232 412 232 402 L232 176 Q232 166 242 166 L256 166" fill="none" stroke="#AE3A33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arw-no)"/><rect x="370" y="398" width="196" height="28" rx="14.0" fill="#F4F1EC" stroke="#AE3A33" stroke-width="1.2"/><text x="468.0" y="416.14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#AE3A33" text-anchor="middle">findings, then rebuilt</text><text x="550.0" y="450" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#6F675A" text-anchor="middle">Three to five cycles. If anything is still open it stops and tells you what.</text>
+</svg>

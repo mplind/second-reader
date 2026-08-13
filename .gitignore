@@ -1,0 +1,4 @@
+docs/plans/
+scratchpad/
+__pycache__/
+.DS_Store
