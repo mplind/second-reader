@@ -502,9 +502,6 @@ docs/                 description trigger tests
 
 </details>
 
-## Authorship
-
-second-reader is by [Matt Lindsey](https://www.linkedin.com/in/mattlindsey/). The method came out of a year of running private research vaults where a wrong answer had a real cost, and every rule in it answers a defect an independent validator caught in production.
 
 ## License
 
