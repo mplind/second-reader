@@ -11,7 +11,7 @@
 
 <p><b>Not a second brain. A second reader.</b></p>
 
-<p>Turn books, PDFs and transcripts into a cited knowledge vault that teaches you the subject and answers like an advisor.</p>
+<p>Build a vault that can teach and advise you from your sources as if you'd carefully read and distilled them yourself.</p>
 
 [![CI][ci-shield]][ci-url]
 [![Agent Skills open standard][skills-shield]][skills-url]
@@ -21,6 +21,7 @@
 
 <p>
   <a href="#what-it-does">What it does</a> &middot;
+  <a href="#what-you-can-do-with-it">What you can do with it</a> &middot;
   <a href="#install">Install</a> &middot;
   <a href="#your-first-hour">Your first hour</a> &middot;
   <a href="#how-the-gate-works">How it works</a> &middot;
@@ -30,18 +31,40 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
-  <img src="docs/assets/hero-light.svg" alt="Sources pass through a verification gate that sends failed pages back, and become a cross-linked vault" width="100%">
+  <img src="docs/assets/hero-light.svg" alt="Sources pass through a verification gate that sends failed pages back, become a cross-linked vault, and answer the questions you ask it" width="100%">
 </picture>
 
 </div>
 
 ## What it does
 
-You have more to read than you have time for. second-reader gives your AI agent a method for getting through it without cutting corners.
+You have more worth reading than you have time to read properly. Books bought for two chapters. Reports skimmed once. Transcripts you meant to come back to.
 
-Point it at a folder and drop in your material. It builds a Markdown knowledge base: one idea per page, cross-linked throughout, every claim cited to the page it came from. Obsidian opens the folder and you have a working vault. Ask it a question and it answers from what it has read, with sources.
+second-reader hands that material to your AI agent and gets back something durable: a Markdown vault holding the knowledge from those sources, checked against the originals, that your agent can teach you from, compare across, and advise you with later.
 
-Agents write fluent, well-cited pages that are sometimes wrong, and a page like that is hard to catch by reading it. So nothing enters the vault on one pass. A second reader takes the original source and reads it cold, without seeing how the first pass reasoned, then sends the work back until a round of checking finds nothing.
+Obsidian opens the folder and you have a working vault. One idea per page, cross-linked throughout, every claim cited to the page it came from.
+
+### Five books
+
+Say five good books cover a subject you want to understand. The real value costs you all five readings, notes worth keeping, the caveats held on to, the disagreements between the authors worked out, and enough of it still in your head months later.
+
+Give the five to second-reader instead. It pulls out the knowledge that matters, drops the repetition and filler, checks its work against the originals, and connects it into one vault.
+
+Then ask your agent to teach you the subject, compare what the authors believe, or coach you through a decision using all five at once.
+
+### What stays, and what goes
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/distill-dark.svg">
+  <img src="docs/assets/distill-light.svg" alt="Books, PDFs and transcripts distilled into ideas, facts, frameworks and caveats, dropping filler, into a checked vault that teaches you" width="100%">
+</picture>
+
+The vault keeps the ideas, the facts, the frameworks, the caveats, and the examples that carry a claim. Repetition, restatement and padding go. The bar is whether you could still use the material months later without opening the book.
+
+> [!NOTE]
+> The vault is plain Markdown on your own machine, and the skill itself sends nothing anywhere. Your sources are read by whatever AI model runs your agent, local or cloud, so the privacy boundary is your choice of harness.
+
+## What you can do with it
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/uses-dark.svg">
@@ -52,8 +75,21 @@ Agents write fluent, well-cited pages that are sometimes wrong, and a page like 
 - **Learn it.** The vault works out what you have not retained, sets the curriculum, teaches you by voice or text, then tests you and grades you without flattery.
 - **Ask it.** Query it like an advisor who did the reading. Anything you will act on passes the same verification gate before you see it.
 
-> [!NOTE]
-> The vault is plain Markdown on your own machine, and the skill itself sends nothing anywhere. Your sources are read by whatever AI model runs your agent, local or cloud, so the privacy boundary is your choice of harness.
+Once the material is in, the asks look like this:
+
+- "Teach me the core ideas across the five investing books I have added."
+- "Where do these authors disagree about position sizing?"
+- "I am negotiating a new role. Coach me using the negotiation material in my vault."
+- "What do my sources say I should weigh before this decision?"
+- "Quiz me on the leadership material."
+
+### When it is worth using
+
+Use it on material you wish you had read carefully: books, research papers, long reports, expert transcripts, course material, professional and regulatory references.
+
+A quick summary of one document needs none of this. The cost is earned on material you expect to learn from, reason with, or decide from later.
+
+second-reader preserves the quality of what you give it. It does not turn a weak source into an authoritative one.
 
 ## Install
 
@@ -227,7 +263,7 @@ What does my vault say about how many users to interview before a pattern is rea
 
 You get an answer traced to the pages it came from, and back through those pages to the source and its location. That question is one your sources will disagree on, so you get both positions and who holds which, rather than whichever one the model reached for first. If the answer is worth keeping it files it back, so the vault gets richer with use.
 
-## What you can ask for
+## The operations
 
 Eight operations, in plain language. You do not need the names.
 
@@ -245,6 +281,8 @@ Eight operations, in plain language. You do not need the names.
 More trigger phrases, including the ones that deliberately do **not** activate the skill, are in [docs/trigger-tests.md](docs/trigger-tests.md).
 
 ## How the gate works
+
+The hard part is not writing the notes. It is checking that the knowledge survived, and that is where most of second-reader lives.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/gate-dark.svg">
@@ -278,6 +316,12 @@ A writer's own review is not an independent check either. LLM judges measurably 
 The full evidence base, including where the evidence is thin, is in [references/evidence.md](references/evidence.md).
 
 </details>
+
+## How knowledge accumulates
+
+Each new source is integrated with what is already in the vault. Related ideas get linked. Where sources agree, one concept page cites all of them. Where they disagree, the vault records both positions with who holds which, and carries that caveat onto every page that acts on the claim.
+
+Thirty ingested sources become one connected body of knowledge rather than thirty summaries filed side by side. That is what makes "where do my sources disagree about this" a question the vault can answer at all.
 
 ## The learning loop
 
@@ -356,6 +400,13 @@ Where a harness lacks a capability, the skill names the degradation instead of h
 | No Obsidian | Everything works on plain Markdown; Obsidian is a viewer |
 
 ## Questions
+
+<details>
+<summary><b>How is this different from a summary?</b></summary>
+
+A summary is written to be short, so the exceptions and boundary conditions go first. Those are what decisions turn on. second-reader keeps them, then tests whether they can still be recovered from the vault before the ingest closes.
+
+</details>
 
 <details>
 <summary><b>How is this different from pointing a RAG setup at my documents?</b></summary>
