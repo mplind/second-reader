@@ -40,19 +40,21 @@
 
 You have more worth reading than you have time to read properly. Books bought for two chapters. Reports skimmed once. Transcripts you meant to come back to.
 
-second-reader hands that material to your AI agent and gets back something durable: a Markdown vault holding the knowledge from those sources, checked against the originals, that your agent can teach you from, compare across, and advise you with later.
+second-reader turns it into something durable: a Markdown vault holding the knowledge from those sources, checked against the originals, that your agent can teach you from, compare across, and advise you with later.
 
 Before anything joins the vault, a second reader checks it against the original. It reads the source cold, without seeing how the first pass reasoned, and sends back whatever is missing, overstated or wrong.
 
-Open the folder in Obsidian or any Markdown editor. Every claim is cited to the page it came from.
+Open the folder in Obsidian or any Markdown editor. Every fact is cited to where it came from, and interpretation is labelled as interpretation.
 
 ### Five books
 
-Say five good books cover a subject you want to understand. The real value costs you all five readings, notes worth keeping, the caveats held on to, the disagreements between the authors worked out, and enough of it still in your head months later.
+Say five good books cover a subject you want to understand. Getting the real value means reading all five, taking notes worth keeping, remembering the caveats, working out where the authors disagree, and holding on to enough of it to use months later.
 
 Give the five to second-reader instead. It pulls out the knowledge that matters, drops the repetition and filler, checks its work against the originals, and connects it into one vault.
 
 Then ask your agent to teach you the subject, compare what the authors believe, or coach you through a decision using all five at once.
+
+Every source you add after that joins the same body of knowledge, so the vault gets more useful the more you put into it.
 
 ### What stays, and what goes
 
