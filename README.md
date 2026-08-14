@@ -93,6 +93,12 @@ A quick summary of one document needs none of this. The cost is earned on materi
 
 second-reader preserves the quality of what you give it. It does not turn a weak source into an authoritative one.
 
+## Why I built it
+
+I built this for my own research vaults. I wanted to put serious material in and know that months later, when it taught or advised me from that material, the important parts were still there and still right.
+
+That turned out to be a harder promise than it sounds. Most of the machinery below exists because earlier versions did not keep it.
+
 ## Install
 
 second-reader is a folder with a `SKILL.md` at its root, which is the [Agent Skills](https://agentskills.io) open standard. Any harness that reads that standard can run it.
