@@ -56,7 +56,7 @@ Then ask your agent to teach you the subject, compare what the authors believe, 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/distill-dark.svg">
-  <img src="docs/assets/distill-light.svg" alt="Books, PDFs and transcripts distilled into ideas, facts, frameworks and caveats, dropping filler, into a checked vault that teaches you" width="100%">
+  <img src="docs/assets/distill-light.svg" alt="Books, PDFs and transcripts distilled into ideas, facts, frameworks and caveats, dropping filler, into a checked vault that teaches and advises you" width="100%">
 </picture>
 
 The vault keeps the ideas, the facts, the frameworks, the caveats, and the examples that carry a claim. Repetition, restatement and padding go. The bar is whether you could still use the material months later without opening the book.
