@@ -42,7 +42,9 @@ You have more worth reading than you have time to read properly. Books bought fo
 
 second-reader hands that material to your AI agent and gets back something durable: a Markdown vault holding the knowledge from those sources, checked against the originals, that your agent can teach you from, compare across, and advise you with later.
 
-Obsidian opens the folder and you have a working vault. One idea per page, cross-linked throughout, every claim cited to the page it came from.
+Before anything joins the vault, a second reader checks it against the original. It reads the source cold, without seeing how the first pass reasoned, and sends back whatever is missing, overstated or wrong.
+
+Open the folder in Obsidian or any Markdown editor. Every claim is cited to the page it came from.
 
 ### Five books
 
@@ -71,7 +73,7 @@ The vault keeps the ideas, the facts, the frameworks, the caveats, and the examp
   <img src="docs/assets/uses-light.svg" alt="Three uses: read less, learn it, ask it" width="100%">
 </picture>
 
-- **Read less.** Sources go in, a distilled and cited wiki comes out. You read the wiki and go to the original only where a decision turns on it.
+- **Read less.** Sources go in; the ideas, facts, frameworks and caveats come out cited, without the repetition and filler. You read the wiki and go to the original only where a decision turns on it.
 - **Learn it.** The vault works out what you have not retained, sets the curriculum, teaches you by voice or text, then tests you and grades you without flattery.
 - **Ask it.** Query it like an advisor who did the reading. Anything you will act on passes the same verification gate before you see it.
 
@@ -321,11 +323,24 @@ The full evidence base, including where the evidence is thin, is in [references/
 
 Each new source is integrated with what is already in the vault. Related ideas get linked. Where sources agree, one concept page cites all of them. Where they disagree, the vault records both positions with who holds which, and carries that caveat onto every page that acts on the claim.
 
-Thirty ingested sources become one connected body of knowledge rather than thirty summaries filed side by side. That is what makes "where do my sources disagree about this" a question the vault can answer at all.
+No single source answers a question like this one:
+
+```text
+"How many users should we interview before a pattern is real?"
+
+Three sources put it at five for usability problems
+  [[Book A]] ch. 4, [[Book B]] ch. 9, [[Report 1]] p. 11
+One holds that five is a usability rule misapplied to discovery work
+  [[Book C]] ch. 2
+
+Logged as a contradiction, and carried onto every page that acts on it.
+```
+
+Thirty ingested sources become one connected body of knowledge rather than thirty summaries filed side by side. The vault gets more useful as you add to it, which is the whole reason to pay the ingest cost more than once.
 
 ## The learning loop
 
-Optional, and the reason a learner tolerates the cost. Ask it to teach you a subject and it runs the loop below.
+This is where the vault teaches you what it has read. Ask for a subject and it runs the loop below. The module is optional; skip it if you only want the vault.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/loop-dark.svg">
