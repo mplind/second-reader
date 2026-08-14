@@ -329,7 +329,7 @@ Optional, and the reason a learner tolerates the cost. Ask it to teach you a sub
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/loop-dark.svg">
-  <img src="docs/assets/loop-light.svg" alt="Five steps: a curriculum from your gaps, one tutor pack, handed to any voice or text AI, a taught and graded session, and the write-up returning to the vault" width="100%">
+  <img src="docs/assets/loop-light.svg" alt="Five steps: a curriculum from your gaps, one tutor pack, handed to any voice or text AI, a graded session, and the write-up returning to the vault" width="100%">
 </picture>
 
 Ask for your curriculum and the vault designs one from its own gap analysis. Ask for the next topic and it generates a **tutor pack**: one self-contained file holding the tutor's instructions, a profile of you as the student, where you are in the syllabus, the teaching text, and the discussion questions. Hand that file to any conversational AI with a voice mode, or run it in text, and the session runs from it.
