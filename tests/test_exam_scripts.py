@@ -456,6 +456,41 @@ class TestSeedGate(Workspace):
         r = self.seed()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
+    def test_canonical_tier_names_accepted(self):
+        # CORE/CONTEXT/ARCHIVE are the canonical values; a claim may also
+        # carry a user-defined sensitivity string, shape-checked only.
+        text = self.read(self.ledger)
+        text = text.replace('"tiers": {"1": 2, "2": 1}',
+                            '"tiers": {"CORE": 2, "CONTEXT": 1}')
+        text = text.replace('"tier": 1', '"tier": "CORE"')
+        text = text.replace('"tier": 2',
+                            '"tier": "CONTEXT", "sensitivity": "restricted"')
+        self.write(self.ledger, text)
+        r = self.seed()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_unknown_coverage_tier_fails(self):
+        # The enumeration is closed: an unknown value fails even when the
+        # declared counts agree with it.
+        text = self.read(self.ledger)
+        text = text.replace('"tiers": {"1": 2, "2": 1}',
+                            '"tiers": {"1": 1, "2": 1, "CRITICAL": 1}')
+        text = text.replace('"tier": 1', '"tier": "CRITICAL"', 1)
+        self.write(self.ledger, text)
+        r = self.seed()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("CRITICAL", r.stdout)
+
+    def test_malformed_sensitivity_fails(self):
+        # sensitivity is user-defined vocabulary, so the gate checks shape
+        # only: a non-empty string.
+        text = self.read(self.ledger)
+        text = text.replace('"tier": 2', '"tier": 2, "sensitivity": ""')
+        self.write(self.ledger, text)
+        r = self.seed()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("sensitivity", r.stdout)
+
     def test_conflicting_tier_keys_fail(self):
         # A claim carrying both names with different values is ambiguous;
         # silently preferring one would hide a real disagreement.

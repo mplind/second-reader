@@ -11,6 +11,11 @@ the blinded brief, verify the two writer deliverables at their real paths:
    names are 'coverage_tier' (per claim) and 'coverage_tiers' (the declared
    count map); the bare legacy names 'tier'/'tiers' are still read, but a
    ledger carrying both names with different values is ambiguous and fails.
+   Coverage-tier values are a closed enumeration: CORE, CONTEXT, ARCHIVE.
+   The numeric aliases 1/2/3 map onto them for existing ledgers and are
+   deprecated; any other value fails. A claim may carry a 'sensitivity'
+   string; its vocabulary is the vault owner's, so the gate checks shape
+   only (a non-empty string).
 2. The EXAM has contiguous ## QT# and ## NC# ranges, at least one NC block
    (no controls means no honesty screen), every Target claim ID resolving to
    a claim the ledger defines, and every block carrying
@@ -43,6 +48,16 @@ import json
 import re
 import sys
 import os
+
+CANONICAL_TIERS = ("CORE", "CONTEXT", "ARCHIVE")
+# Deprecated numeric aliases, kept so ledgers written before the names were
+# canonical still verify. New ledgers use the names.
+NUMERIC_TIER_ALIASES = {"1": "CORE", "2": "CONTEXT", "3": "ARCHIVE"}
+
+
+def canon_tier(value):
+    s = str(value)
+    return NUMERIC_TIER_ALIASES.get(s, s)
 
 
 def verify_ledger(path, dur_lines=None):
@@ -89,16 +104,44 @@ def _verify_ledger_parsed(path, dur_lines=None):
         return c.get("coverage_tier", c.get("tier"))
 
     from collections import Counter
-    # JSON tier-declaration keys are always strings; compare str(tier) so an
-    # integer tier value in a claim still matches its declared count. Claims
+    # Values are canonicalized before counting (numeric aliases map to the
+    # names, JSON declaration keys are always strings), so a ledger declaring
+    # {"1": 2} against claims tagged 1 or CORE still reconciles. Claims
     # carrying neither name are excluded here (no crash) and named by the
     # missing-key check below.
-    actual = Counter(str(claim_tier(c)) for c in claims
+    actual = Counter(canon_tier(claim_tier(c)) for c in claims
                      if claim_tier(c) is not None)
-    if dict(sorted(actual.items())) != dict(sorted(tiers.items())):
-        errs.append(f"LEDGER: coverage-tier counts {dict(actual)} != declared {tiers}")
+    declared = Counter()
+    for k, v in tiers.items():
+        declared[canon_tier(k)] += v
+    if dict(sorted(actual.items())) != dict(sorted(declared.items())):
+        errs.append(f"LEDGER: coverage-tier counts {dict(actual)} != declared {dict(declared)}")
     if sum(tiers.values()) != len(claims):
         errs.append(f"LEDGER: coverage-tiers sum {sum(tiers.values())} != {len(claims)}")
+    # The enumeration is closed: CORE/CONTEXT/ARCHIVE (or a deprecated
+    # numeric alias). Anything else is a tier the instrument never defined,
+    # and an undefined tier is an undefined depth requirement.
+    bad_tier = [f"{c.get('id')}={claim_tier(c)!r}" for c in claims
+                if claim_tier(c) is not None
+                and canon_tier(claim_tier(c)) not in CANONICAL_TIERS]
+    if bad_tier:
+        errs.append("LEDGER: coverage_tier must be one of "
+                    f"{'/'.join(CANONICAL_TIERS)} (or numeric alias 1/2/3): "
+                    + ", ".join(bad_tier))
+    bad_keys = sorted(str(k) for k in tiers
+                      if canon_tier(k) not in CANONICAL_TIERS)
+    if bad_keys:
+        errs.append("LEDGER: unknown coverage-tier key(s) declared: "
+                    + ", ".join(bad_keys))
+    # sensitivity is the vault owner's vocabulary (see
+    # references/coverage-instrument.md, Part 3); only its shape is checkable.
+    bad_sens = [c.get("id") for c in claims
+                if "sensitivity" in c
+                and not (isinstance(c["sensitivity"], str)
+                         and c["sensitivity"].strip())]
+    if bad_sens:
+        errs.append("LEDGER: 'sensitivity' must be a non-empty string "
+                    f"(user-defined vocabulary) in {bad_sens}")
     ids = [c.get("id") for c in claims]
     if len(set(ids)) != len(ids):
         errs.append("LEDGER: duplicate claim IDs present")
