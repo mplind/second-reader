@@ -141,6 +141,84 @@ class TestConfidenceSeparation(VaultCase):
                          "full processing must not forbid low confidence")
 
 
+class TestBaseline(VaultCase):
+    """--baseline-write / --baseline-compare: a normalized findings snapshot.
+
+    Identity is check + file + message; drift in either direction fails, and
+    aggregate counts are never the comparator."""
+
+    def setUp(self):
+        super().setUp()
+        self.contract()
+        self.scaffold_stubs()
+        self.base = str(self.tmp) + "-baseline.json"
+        self.plant_link()
+
+    def tearDown(self):
+        if os.path.exists(self.base):
+            os.remove(self.base)
+        super().tearDown()
+
+    def plant_link(self, present=True):
+        body = "# First ride\n\nA ride happened.\n"
+        if present:
+            body += "\nSee [[Nowhere]] for the route.\n"
+        self.write("wiki/concepts/first-ride.md",
+                   page("First ride", "concept", body,
+                        sources='["raw/inbox/history.md"]'))
+
+    def plant_placeholder(self):
+        self.write("wiki/concepts/route.md",
+                   page("Route", "concept",
+                        "# Route\n\n{{open_questions}}\n",
+                        sources='["raw/inbox/history.md"]'))
+
+    def baseline(self, mode, *args):
+        return self.run_lint("--phase", "content", mode, self.base, *args)
+
+    def test_write_then_compare_is_stable(self):
+        r = self.baseline("--baseline-write")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = self.baseline("--baseline-compare")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_new_finding_fails_compare(self):
+        self.baseline("--baseline-write")
+        self.plant_placeholder()
+        r = self.baseline("--baseline-compare")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("new:", r.stdout)
+
+    def test_vanished_finding_fails_compare(self):
+        self.baseline("--baseline-write")
+        self.plant_link(present=False)
+        r = self.baseline("--baseline-compare")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("vanished:", r.stdout)
+
+    def test_swap_with_equal_counts_fails_compare(self):
+        # One finding out, one in: the total stays constant, so a comparator
+        # of aggregate counts would pass. Identity must fail it in both
+        # directions.
+        self.baseline("--baseline-write")
+        self.plant_link(present=False)
+        self.plant_placeholder()
+        r = self.baseline("--baseline-compare")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("new:", r.stdout)
+        self.assertIn("vanished:", r.stdout)
+
+    def test_write_inside_vault_refused(self):
+        r = self.run_lint("--phase", "content", "--baseline-write",
+                          str(self.tmp / "baseline.json"))
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+
+    def test_phase_mismatch_refused(self):
+        self.baseline("--baseline-write")
+        r = self.run_lint("--baseline-compare", self.base)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+
+
 class TestSourceStatus(VaultCase):
     def sources(self, status):
         self.write("wiki/sources.md",

@@ -167,6 +167,33 @@ bookkeeping files the blindness protocol says must stay untouched.
 `--version` prints the lint version (`LINT_VERSION` in the script); coverage
 reports record it so a VALIDATED verdict names the tool that checked it.
 
+## Baseline mode (standing findings, held by identity)
+
+A vault adopted mid-life can carry findings the owner has accepted for now. Baseline
+mode holds that line without letting anything move under it:
+
+```sh
+python3 ops/lint.py <vault> --baseline-write ops-notes/lint-baseline.json
+python3 ops/lint.py <vault> --baseline-compare ops-notes/lint-baseline.json
+```
+
+- The snapshot records one **identity** per finding: check, file, and message. Line
+  numbers are excluded, so an edit above a standing finding does not churn the
+  baseline; identical messages in one file collapse to one identity.
+- Compare fails (exit 1) on any NEW identity and on any VANISHED one. A vanished
+  finding is drift too: either someone fixed it (re-record the baseline and say so)
+  or a check stopped firing, and the baseline cannot tell which.
+- **Aggregate counts are never the comparator.** One finding swapped for another
+  keeps the total constant and still fails, as one `new:` plus one `vanished:`.
+- The snapshot records the phase it was taken in, and compare refuses a phase
+  mismatch (exit 2): the two phases run different check sets.
+- Write refuses a path inside the vault. Lint never writes to the vault, and the
+  baseline is the caller's record, not the vault's.
+
+Exit codes in baseline mode: 0 no drift, 1 drift, 2 usage or unreadable baseline. A
+baseline is a loan, not a waiver: the recorded findings still exist, and the fixture
+contract (`fixtures/EXPECTED.md`) never runs through a baseline.
+
 ## The metadata format (what the frontmatter parser accepts)
 
 The parser is a deliberate, tested subset. It is not YAML, and files that lean

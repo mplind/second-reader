@@ -2,7 +2,8 @@
 """Mechanical lint for a second-reader vault.
 
 Usage:
-    lint.py <vault-path> [--json]
+    lint.py <vault-path> [--phase content|final] [--json]
+            [--baseline-write FILE | --baseline-compare FILE]
 
 Exit codes:
     0  clean: every check ran and found nothing
@@ -694,8 +695,63 @@ CONTENT_CHECKS = {
 
 def usage_error(message):
     sys.stderr.write("lint.py: %s\nusage: lint.py <vault-path> "
-                     "[--phase content|final] [--json] [--version]\n" % message)
+                     "[--phase content|final] [--json] "
+                     "[--baseline-write FILE | --baseline-compare FILE] "
+                     "[--version]\n" % message)
     return 2
+
+
+def finding_identities(results):
+    """Sorted unique identities, one per finding: check + file + message.
+
+    Line numbers are excluded on purpose: an unrelated edit above a standing
+    finding moves its line without changing what is wrong, and a baseline that
+    churns on that teaches people to ignore it. Identical messages in one file
+    collapse to one identity for the same reason.
+    """
+    return sorted({"%s :: %s :: %s" % (name, f, m)
+                   for name, findings in results
+                   for f, _, m in findings})
+
+
+def baseline_write(path, root, phase, results):
+    target = Path(path)
+    if target.resolve().is_relative_to(root.resolve()):
+        return usage_error("baseline file must not live inside the vault "
+                           "(lint never writes to the vault): %s" % path)
+    identities = finding_identities(results)
+    payload = {"lint_version": LINT_VERSION, "phase": phase,
+               "findings": identities}
+    target.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print("baseline written: %d finding identities -> %s"
+          % (len(identities), path))
+    return 0
+
+
+def baseline_compare(path, phase, results):
+    try:
+        snapshot = json.loads(Path(path).read_text(encoding="utf-8"))
+        recorded_phase = snapshot["phase"]
+        recorded = set(snapshot["findings"])
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        return usage_error("cannot read baseline %s (%s)" % (path, e))
+    if recorded_phase != phase:
+        return usage_error("baseline was recorded for phase '%s', this run is "
+                           "phase '%s'; the two are different check sets"
+                           % (recorded_phase, phase))
+    current = set(finding_identities(results))
+    new = sorted(current - recorded)
+    vanished = sorted(recorded - current)
+    for line in new:
+        print("new: %s" % line)
+    for line in vanished:
+        print("vanished: %s" % line)
+    if new or vanished:
+        print("baseline drift: %d new, %d vanished (identity, never counts)"
+              % (len(new), len(vanished)))
+        return 1
+    print("baseline match: %d finding identities, no drift" % len(current))
+    return 0
 
 
 def main(argv):
@@ -704,6 +760,7 @@ def main(argv):
         return 0
     as_json = "--json" in argv[1:]
     phase = "final"
+    baseline = {}
     args = []
     rest = list(argv[1:])
     while rest:
@@ -716,8 +773,20 @@ def main(argv):
             phase = rest.pop(0)
         elif a.startswith("--phase="):
             phase = a.split("=", 1)[1]
+        elif a in ("--baseline-write", "--baseline-compare"):
+            if not rest:
+                return usage_error("%s needs a file path" % a)
+            baseline[a] = rest.pop(0)
+        elif a.startswith(("--baseline-write=", "--baseline-compare=")):
+            flag, val = a.split("=", 1)
+            baseline[flag] = val
         else:
             args.append(a)
+    if len(baseline) > 1:
+        return usage_error("--baseline-write and --baseline-compare are "
+                           "mutually exclusive")
+    if baseline and as_json:
+        return usage_error("baseline modes have their own output; drop --json")
     if phase not in ("content", "final"):
         return usage_error("--phase must be content or final, not '%s'" % phase)
     if len(args) != 1:
@@ -744,6 +813,11 @@ def main(argv):
         sys.stderr.write("lint.py: internal error while checking %s\n" % root)
         traceback.print_exc(file=sys.stderr)
         return 2
+
+    if "--baseline-write" in baseline:
+        return baseline_write(baseline["--baseline-write"], root, phase, results)
+    if "--baseline-compare" in baseline:
+        return baseline_compare(baseline["--baseline-compare"], phase, results)
 
     if as_json:
         payload = {
