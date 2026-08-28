@@ -6,9 +6,11 @@ the blinded brief, verify the two writer deliverables at their real paths:
 
 1. The claim LEDGER is valid JSON with sequential/unique IDs, a kind on every
    claim (assertion, or qualifier whose 'conditions' names a real claim ID),
-   tier counts that
-   sum to total_claims, and every source_line/source_end inside the
-   durable-text bounds.
+   coverage-tier counts that sum to total_claims, and every
+   source_line/source_end inside the durable-text bounds. The canonical field
+   names are 'coverage_tier' (per claim) and 'coverage_tiers' (the declared
+   count map); the bare legacy names 'tier'/'tiers' are still read, but a
+   ledger carrying both names with different values is ambiguous and fails.
 2. The EXAM has contiguous ## QT# and ## NC# ranges, at least one NC block
    (no controls means no honesty screen), every Target claim ID resolving to
    a claim the ledger defines, and every block carrying
@@ -66,19 +68,37 @@ def _verify_ledger_parsed(path, dur_lines=None):
     n = d.get("total_claims")
     if n != len(claims):
         errs.append(f"LEDGER: total_claims {n} != len(claims) {len(claims)}")
-    tiers = d.get("tiers", {})
+    # coverage_tier/coverage_tiers are canonical; tier/tiers are the legacy
+    # names, still read. Both present with different values is ambiguous:
+    # silently preferring one would hide a real disagreement.
+    if ("coverage_tiers" in d and "tiers" in d
+            and d["coverage_tiers"] != d["tiers"]):
+        errs.append("LEDGER: 'coverage_tiers' and legacy 'tiers' disagree")
+    tiers = d.get("coverage_tiers", d.get("tiers", {}))
     if not isinstance(tiers, dict):
-        return errs + ["LEDGER: 'tiers' must be an object of tier -> count"]
+        return errs + ["LEDGER: 'coverage_tiers' must be an object of "
+                       "coverage tier -> count"]
+    conflicted = [c.get("id") for c in claims
+                  if "coverage_tier" in c and "tier" in c
+                  and c["coverage_tier"] != c["tier"]]
+    if conflicted:
+        errs.append("LEDGER: 'coverage_tier' and legacy 'tier' disagree "
+                    f"in {conflicted}")
+
+    def claim_tier(c):
+        return c.get("coverage_tier", c.get("tier"))
+
     from collections import Counter
     # JSON tier-declaration keys are always strings; compare str(tier) so an
     # integer tier value in a claim still matches its declared count. Claims
-    # with no 'tier' at all are excluded here (no crash) and named by the
+    # carrying neither name are excluded here (no crash) and named by the
     # missing-key check below.
-    actual = Counter(str(c["tier"]) for c in claims if "tier" in c)
+    actual = Counter(str(claim_tier(c)) for c in claims
+                     if claim_tier(c) is not None)
     if dict(sorted(actual.items())) != dict(sorted(tiers.items())):
-        errs.append(f"LEDGER: tier counts {dict(actual)} != declared {tiers}")
+        errs.append(f"LEDGER: coverage-tier counts {dict(actual)} != declared {tiers}")
     if sum(tiers.values()) != len(claims):
-        errs.append(f"LEDGER: tiers sum {sum(tiers.values())} != {len(claims)}")
+        errs.append(f"LEDGER: coverage-tiers sum {sum(tiers.values())} != {len(claims)}")
     ids = [c.get("id") for c in claims]
     if len(set(ids)) != len(ids):
         errs.append("LEDGER: duplicate claim IDs present")
@@ -96,10 +116,13 @@ def _verify_ledger_parsed(path, dur_lines=None):
                if not (1 <= c.get("source_line", 0) <= c.get("source_end", 0) <= dur_lines)]
         if bad:
             errs.append(f"LEDGER: source_line/end out of durable bounds for {bad}")
-    for k in ["id", "chapter", "claim", "source_line", "source_end", "tier", "kind"]:
+    for k in ["id", "chapter", "claim", "source_line", "source_end", "kind"]:
         missing = [c.get("id") for c in claims if k not in c]
         if missing:
             errs.append(f"LEDGER: missing key '{k}' in {missing}")
+    untier = [c.get("id") for c in claims if claim_tier(c) is None]
+    if untier:
+        errs.append(f"LEDGER: missing key 'coverage_tier' (or legacy 'tier') in {untier}")
     bad_kind = [c.get("id") for c in claims
                 if "kind" in c and c["kind"] not in ("assertion", "qualifier")]
     if bad_kind:

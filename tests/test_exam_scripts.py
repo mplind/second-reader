@@ -408,6 +408,28 @@ class TestSeedGate(Workspace):
         self.assertEqual(r.returncode, 1,
                          "an exam with no QT blocks tests nothing")
 
+    def test_coverage_tier_vocabulary_accepted(self):
+        # The canonical field name is coverage_tier / coverage_tiers; the
+        # bare legacy names stay readable (the canonical fixture uses them).
+        text = self.read(self.ledger)
+        text = text.replace('"tiers"', '"coverage_tiers"')
+        text = text.replace('"tier":', '"coverage_tier":')
+        self.write(self.ledger, text)
+        r = self.seed()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_conflicting_tier_keys_fail(self):
+        # A claim carrying both names with different values is ambiguous;
+        # silently preferring one would hide a real disagreement.
+        text = self.read(self.ledger)
+        text = text.replace('"source_line": 1, "source_end": 1, "tier": 1',
+                            '"source_line": 1, "source_end": 1, '
+                            '"coverage_tier": 2, "tier": 1', 1)
+        self.write(self.ledger, text)
+        r = self.seed()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("coverage_tier", r.stdout)
+
     def test_missing_exam_file_is_finding_not_traceback(self):
         r = run("verify_exam_seed.py", self.ledger,
                 os.path.join(self.tmp, "no-such-exam.md"), self.durable)

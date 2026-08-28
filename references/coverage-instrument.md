@@ -365,11 +365,13 @@ The scripts and the briefs they gate agree on one contract. Writers, testers, an
 must produce files in exactly this shape:
 
 - **Claim ledger** (`<source>-claims.json`): valid JSON with keys `total_claims`
-  (must equal the length of `claims`), `tiers` (a tier-to-count map whose values sum to
-  `total_claims` and match the actual per-claim tier counts), and `claims`, an array
-  where every claim carries `id`, `chapter`, `claim`, `source_line`, `source_end`,
-  `tier`, and `kind` (`assertion`, or `qualifier` with a `conditions` field naming
-  the ID of an existing claim it qualifies). IDs are unique and end in a sequential
+  (must equal the length of `claims`), `coverage_tiers` (a coverage-tier-to-count map
+  whose values sum to `total_claims` and match the actual per-claim counts), and
+  `claims`, an array where every claim carries `id`, `chapter`, `claim`,
+  `source_line`, `source_end`, `coverage_tier`, and `kind` (`assertion`, or
+  `qualifier` with a `conditions` field naming the ID of an existing claim it
+  qualifies). The bare legacy names `tier`/`tiers` are still read for existing
+  ledgers; a ledger carrying both names with different values fails as ambiguous. IDs are unique and end in a sequential
   numeric index running 1..N (e.g. `BK001`..`BK492`). Every `source_line`/`source_end` pair must satisfy
   1 ≤ source_line ≤ source_end ≤ the durable text's line count.
 - **Exam file**: question blocks headed `## QT<n>` (real questions) and `## NC<n>`
@@ -388,6 +390,15 @@ must produce files in exactly this shape:
 ---
 
 ## Part 3: Tiering (weight by relevance; kept)
+
+**Vocabulary.** "Tier" in this instrument always means COVERAGE depth: the
+CORE/CONTEXT/ARCHIVE tags below, carried in ledgers and reports as
+`coverage_tier`. It is not a sensitivity classification. A vault that classifies
+material by who may read it uses a separate field with its own closed enumeration,
+e.g. `sensitivity: public | personal | restricted`, and never overloads
+`coverage_tier` for it: the two answer different questions (how deep to capture vs
+who gets access), and one field serving both is how an access rule silently becomes
+a depth decision.
 
 Not all material deserves the same depth. Apply the CORE/CONTEXT/ARCHIVE tags to WHAT
 CLOSING A GAP requires:
