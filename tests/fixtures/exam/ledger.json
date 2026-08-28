@@ -2,6 +2,7 @@
   "source": "tests/fixtures/exam/durable.txt",
   "total_claims": 3,
   "tiers": {"1": 2, "2": 1},
+  "sensitivity_values": ["public", "personal", "restricted"],
   "claims": [
     {"id": "C001", "chapter": 1, "claim": "First ride covered 42 km in one day",
      "source_line": 1, "source_end": 1, "tier": 1, "kind": "assertion"},

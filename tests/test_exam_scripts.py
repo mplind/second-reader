@@ -467,9 +467,21 @@ class TestSeedGate(Workspace):
         r = self.seed()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
+    def declare_sensitivity(self, values='["public", "personal", "restricted"]'):
+        text = self.read(self.ledger)
+        text = text.replace(
+            '"sensitivity_values": ["public", "personal", "restricted"]',
+            '"sensitivity_values": ' + values)
+        self.write(self.ledger, text)
+
+    def mark_claim(self, value):
+        self.write(self.ledger, self.read(self.ledger).replace(
+            '"tier": 2', f'"tier": 2, "sensitivity": {value}'))
+
     def test_canonical_tier_names_accepted(self):
         # CORE/CONTEXT/ARCHIVE are the canonical values; a claim may also
-        # carry a user-defined sensitivity string, shape-checked only.
+        # carry a sensitivity value that is a member of the ledger's
+        # declared vocabulary.
         text = self.read(self.ledger)
         text = text.replace('"tiers": {"1": 2, "2": 1}',
                             '"tiers": {"CORE": 2, "CONTEXT": 1}')
@@ -479,6 +491,27 @@ class TestSeedGate(Workspace):
         self.write(self.ledger, text)
         r = self.seed()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_sensitivity_without_declaration_fails(self):
+        # The vocabulary is closed within a vault: a claim may not use a
+        # value the ledger never declared, however plausible it looks.
+        self.declare_sensitivity("null")
+        self.mark_claim('"restricted"')
+        r = self.seed()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("sensitivity_values", r.stdout)
+
+    def test_empty_sensitivity_vocabulary_fails(self):
+        self.declare_sensitivity("[]")
+        r = self.seed()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("sensitivity_values", r.stdout)
+
+    def test_non_member_sensitivity_value_fails(self):
+        self.mark_claim('"secret"')
+        r = self.seed()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("secret", r.stdout)
 
     def test_unknown_coverage_tier_fails(self):
         # The enumeration is closed: an unknown value fails even when the

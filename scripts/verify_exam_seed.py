@@ -13,9 +13,12 @@ the blinded brief, verify the two writer deliverables at their real paths:
    ledger carrying both names with different values is ambiguous and fails.
    Coverage-tier values are a closed enumeration: CORE, CONTEXT, ARCHIVE.
    The numeric aliases 1/2/3 map onto them for existing ledgers and are
-   deprecated; any other value fails. A claim may carry a 'sensitivity'
-   string; its vocabulary is the vault owner's, so the gate checks shape
-   only (a non-empty string).
+   deprecated; any other value fails. Sensitivity is user-defined per vault
+   and closed within one: the ledger declares the vocabulary once, as
+   'sensitivity_values' (a non-empty list of strings), and every claim's
+   'sensitivity' must be a member. A claim value with no declaration, an
+   empty declared list, and a non-member value each fail, with the value
+   named.
 2. The EXAM has contiguous ## QT# and ## NC# ranges, at least one NC block
    (no controls means no honesty screen), every Target claim ID resolving to
    a claim the ledger defines, and every block carrying
@@ -133,15 +136,33 @@ def _verify_ledger_parsed(path, dur_lines=None):
     if bad_keys:
         errs.append("LEDGER: unknown coverage-tier key(s) declared: "
                     + ", ".join(bad_keys))
-    # sensitivity is the vault owner's vocabulary (see
-    # references/coverage-instrument.md, Part 3); only its shape is checkable.
-    bad_sens = [c.get("id") for c in claims
-                if "sensitivity" in c
-                and not (isinstance(c["sensitivity"], str)
-                         and c["sensitivity"].strip())]
-    if bad_sens:
-        errs.append("LEDGER: 'sensitivity' must be a non-empty string "
-                    f"(user-defined vocabulary) in {bad_sens}")
+    # sensitivity vocabulary: the values are the vault owner's, defined
+    # per vault, and closed once declared. The ledger declares the list in
+    # 'sensitivity_values'; every claim value must be a member (see
+    # references/coverage-instrument.md, Part 3).
+    sens_decl = d.get("sensitivity_values")
+    valid_decl = None
+    if sens_decl is not None:
+        if (not isinstance(sens_decl, list)
+                or not all(isinstance(v, str) and v.strip() for v in sens_decl)):
+            errs.append("LEDGER: 'sensitivity_values' must be a list of "
+                        "non-empty strings")
+        elif not sens_decl:
+            errs.append("LEDGER: 'sensitivity_values' is empty: a closed "
+                        "vocabulary needs at least one value")
+        else:
+            valid_decl = sens_decl
+    used = [(c.get("id"), c.get("sensitivity")) for c in claims
+            if "sensitivity" in c]
+    if used and sens_decl is None:
+        errs.append("LEDGER: claims carry 'sensitivity' but the ledger "
+                    "declares no 'sensitivity_values' vocabulary: "
+                    f"{[i for i, _ in used]}")
+    elif valid_decl:
+        bad_sens = [f"{i}={v!r}" for i, v in used if v not in valid_decl]
+        if bad_sens:
+            errs.append("LEDGER: sensitivity value not in the declared "
+                        "sensitivity_values: " + ", ".join(bad_sens))
     ids = [c.get("id") for c in claims]
     if len(set(ids)) != len(ids):
         errs.append("LEDGER: duplicate claim IDs present")

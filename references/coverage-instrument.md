@@ -379,8 +379,11 @@ must produce files in exactly this shape:
   they are deprecated, and new ledgers use the names. Any other value fails the seed
   gate. The bare legacy names `tier`/`tiers` are still read for existing ledgers; a
   ledger carrying both names with different values fails as ambiguous. A claim may
-  also carry `sensitivity`; its vocabulary belongs to the vault owner (Part 3), so
-  the seed gate checks shape only: a non-empty string. IDs are unique and end in a sequential
+  also carry `sensitivity`; its vocabulary belongs to the vault owner (Part 3) and
+  is declared once in the ledger as `sensitivity_values`, a non-empty list of
+  strings. The seed gate checks every claim value by membership in that list: a
+  claim value with no declaration, an empty declared list, and a non-member value
+  each fail, with the offending value named. IDs are unique and end in a sequential
   numeric index running 1..N (e.g. `BK001`..`BK492`). Every `source_line`/`source_end` pair must satisfy
   1 ≤ source_line ≤ source_end ≤ the durable text's line count.
 - **Exam file**: question blocks headed `## QT<n>` (real questions) and `## NC<n>`
@@ -407,9 +410,12 @@ material by who may read it uses a separate field with its own closed enumeratio
 e.g. `sensitivity: public | personal | restricted`, and never overloads
 `coverage_tier` for it: the two answer different questions (how deep to capture vs
 who gets access), and one field serving both is how an access rule silently becomes
-a depth decision. The `sensitivity` enumeration is defined by the owner in the
-vault, not by this instrument; the seed gate therefore validates its shape only (a
-non-empty string per claim) and leaves the vocabulary to the vault's own contract.
+a depth decision. The `sensitivity` vocabulary is the vault owner's, not this
+instrument's, and it is user-defined ACROSS vaults but closed WITHIN one: the
+ledger declares the list once, in `sensitivity_values` (the
+`public | personal | restricted` example above is one such declaration), and from
+then on every claim value must be a member. The seed gate enforces the membership;
+choosing the words stays with the owner.
 
 Not all material deserves the same depth. Apply the CORE/CONTEXT/ARCHIVE tags to WHAT
 CLOSING A GAP requires:
