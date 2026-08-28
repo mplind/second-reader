@@ -17,7 +17,7 @@ python3 scripts/run_structural_gates.py <ledger.json> <exam.md> <durable.txt> \
         --run-dir ops/exam/<source>-<revision>
 
 # 3. Dispatch each chunk file to the blinded tester; administer the controls file
-#    separately. This is agent work; no script does it.
+#    separately. This step is dispatch work; no script does it.
 
 # 4. Gate the tester's deliverables before anyone grades them.
 python3 scripts/verify_answer_files.py --file <answers.md>:QT:<first>:<last> ...

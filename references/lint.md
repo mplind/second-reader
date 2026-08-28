@@ -199,9 +199,9 @@ python3 ops/lint.py <vault> --baseline-compare ops-notes/lint-baseline.json
 - Write refuses a path inside the vault. Lint never writes to the vault, and the
   baseline is the caller's record, not the vault's.
 
-Exit codes in baseline mode: 0 no drift, 1 drift, 2 usage or unreadable baseline. A
-baseline is a loan, not a waiver: the recorded findings still exist, and the fixture
-contract (`fixtures/EXPECTED.md`) never runs through a baseline.
+Exit codes in baseline mode: 0 no drift, 1 drift, 2 usage or unreadable baseline.
+The recorded findings remain findings; a baseline records them, it does not retire
+them. The fixture contract (`fixtures/EXPECTED.md`) never runs through a baseline.
 
 ## The metadata format (what the frontmatter parser accepts)
 

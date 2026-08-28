@@ -674,10 +674,8 @@ tester, blind reader, second auditor). Per column:
   here is whoever built the wiki content under audit.
 - **Level:** the quality-loop ladder rung this role actually ran at.
 
-**The verdict's level is the minimum across the rows.** Independence fails at its
-weakest link: one role that shared the writer's context caps the whole audit at
-level 0, whatever the other five achieved. The card reports that minimum; the table
-under it says where the minimum came from.
+**The verdict's level is the minimum across the rows**: one role that shared the
+writer's context caps the whole audit at level 0, whatever the other five achieved.
 
 ## Conversion ledger contract
 

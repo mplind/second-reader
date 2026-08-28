@@ -294,7 +294,7 @@ compact option is defined rather than improvised:
 - **One independent validator**, at the strongest rung the runtime offers, receiving
   the standard three inputs and re-reading the source cold.
 - **The full nine-failure-mode checklist**, a verdict per mode by name, absence
-  asserted as "clean". The checklist never lightens; only the exam machinery does.
+  asserted as "clean".
 - **Lint, both phases, still mandatory.** The mechanical gate costs nothing.
 - **The closed-book exam is optional.** Skipping it is recorded, not silent: the
   report says `exam: not run (lighter path)` and names the trigger review below.
@@ -316,8 +316,8 @@ None firing means the lighter path is enough, and the report says so:
 `validation path: lighter (triggers 1-5 checked, none fired)`. One escalation rule,
 also deterministic: a lighter-path validation that finds a counter-class defect
 (a missing structural element, a wrong figure, an unlabelled derivation) escalates
-that source to the full instrument on the next cycle. The bar never moves; only the
-amount of machinery spent proving it does.
+that source to the full instrument on the next cycle. Both paths hold the
+acceptance gate as written above.
 
 ## Validating material the owner will act on
 
@@ -396,9 +396,9 @@ level 0 pass and a level 3 pass are different claims.
 A multi-role instrument records the level PER ROLE, not once for the gate: the
 coverage instrument's six contexts each get a row (provider, exact model id,
 context identity, permitted inputs, relation to the writer, level), and the
-verdict's level is the minimum across the rows. The record format lives in
-`references/coverage-instrument.md`; the reason is that one role sharing the
-writer's context caps the whole audit, however isolated the others were.
+verdict's level is the minimum across the rows, because one role sharing the
+writer's context caps the whole audit. The record format lives in
+`references/coverage-instrument.md`.
 
 ## Running without subagents
 
