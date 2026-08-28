@@ -106,6 +106,44 @@ everything).
     as `unreadable file (invalid UTF-8)` rather than crashing the run. An unexpected
     internal error exits 2, never 1: exit 1 always means findings.
 
+## The applicability matrix (what each check reads)
+
+Every exemption is listed here; there are no others. A check scans one of four
+scopes:
+
+- **all pages**: every `.md` under `wiki/`, bookkeeping included, plus stray pages at
+  the `wiki/` root.
+- **content pages**: pages inside `wiki/` subdirectories, plus any stray page at the
+  `wiki/` root that is not one of the six bookkeeping files. A stray root page is held
+  to content standards, never silently exempt.
+- **named files**: one specific file or the six bookkeeping files.
+- **the walk**: defects of the traversal itself, not of any page.
+
+| Check | Scope |
+|---|---|
+| wikilink-resolution | all pages |
+| split-wikilinks | all pages |
+| frontmatter | content pages (bookkeeping carries its own template; pages tagged `meta` are exempt from `sources`/`confidence` only) |
+| template-placeholders | all pages |
+| bookkeeping-truth | content pages (claims), plus every entry in `contradictions.md` |
+| bookkeeping-stubs | the six bookkeeping files |
+| index-completeness | content pages against `index.md` |
+| synthesis-currency | `synthesis.md` against the `sources.md` rows |
+| as-of-dating | content pages |
+| name-variance | all pages |
+| contradiction-kind | `contradictions.md` |
+| orphan-pages | content pages |
+| filename-collision | all pages |
+| source-status | `sources.md` |
+| vault-contract | `AGENTS.md` at the vault root |
+| vault-walk | the walk |
+
+Nothing under `raw/` is read by any check: sources are the owner's material and lint
+audits only what the vault wrote about them. Dotfiles and dot-directories (e.g.
+`.obsidian`) are skipped everywhere. Any future check must add its row here; a scope
+that is not written down is an implicit exemption, the failure mode this file exists
+to rule out.
+
 ## Phases
 
 Lint runs in one of two phases, because the quality loop forbids populating

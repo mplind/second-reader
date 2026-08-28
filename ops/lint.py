@@ -27,6 +27,10 @@ Rules of the instrument:
   from a check that passed, which is exactly the failure this format prevents.
 - Checks discover content subdirectories under wiki/ instead of hardcoding
   them. A new subfolder is covered automatically.
+- Each check reads one declared scope: all pages under wiki/, content pages
+  only, a named bookkeeping file, or the walk itself. The full matrix is in
+  references/lint.md; every exemption is listed there and nowhere else. A
+  stray page at the wiki/ root counts as content, and raw/ is never read.
 """
 
 import json
