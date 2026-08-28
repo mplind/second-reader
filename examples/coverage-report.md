@@ -110,6 +110,17 @@ Negative controls: 6/6.
 
 **Blind reader:** re-run fresh. No new findings, asserted clean.
 
+**Independence record** (per role; the card's level 2 is the minimum of this column):
+
+| Role | Provider | Model id | Context | Permitted inputs | Relation to writer | Level |
+|---|---|---|---|---|---|---|
+| Extractor | Vendor A | vendor-a-large-2026-05 | fresh subagent | source text only | none | 2 |
+| Candidate generator | Vendor A | vendor-a-large-2026-05 | fresh subagent | claim list + wiki | none | 2 |
+| Exam writer | Vendor A | vendor-a-large-2026-05 | fresh subagent | source + candidate list | same model | 2 |
+| Tester | Vendor A | vendor-a-small-2026-03 | fresh subagent | blinded brief + wiki | same provider | 2 |
+| Blind reader | Vendor A | vendor-a-large-2026-05 | fresh subagent | source + wiki | none | 2 |
+| Second auditor | Vendor B | vendor-b-pro-2026-04 | fresh subagent | source + wiki + gate spec | none | 3 |
+
 **THIN items:** 0.
 
 **Lint:** clean (run after the cycle 2 fixes, before this validation).

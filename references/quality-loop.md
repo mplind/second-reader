@@ -357,6 +357,13 @@ Every verdict and every log entry records the level it ran at, as
 the strength of its own evidence, and the levels are not interchangeable: a
 level 0 pass and a level 3 pass are different claims.
 
+A multi-role instrument records the level PER ROLE, not once for the gate: the
+coverage instrument's six contexts each get a row (provider, exact model id,
+context identity, permitted inputs, relation to the writer, level), and the
+verdict's level is the minimum across the rows. The record format lives in
+`references/coverage-instrument.md`; the reason is that one role sharing the
+writer's context caps the whole audit, however isolated the others were.
+
 ## Running without subagents
 
 If the environment cannot spawn a separate agent or fork context, independence still has

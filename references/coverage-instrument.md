@@ -626,8 +626,36 @@ Below the card, every source report contains, without exception:
 - THIN items and which second auditor cleared them (with reason)
 - cycles run, and the provenance seal (below): the `MANIFEST sha256:` line the exam
   run wrote and the `COMMIT` line appended at commit time
-- the validator's independence level (the quality-loop ladder), as `level N (<rung>)`
+- the independence record, per role (next section); the card's `independence: level
+  N (<rung>)` is the MINIMUM level across the roles
 - the protocol version (from `SKILL.md` frontmatter) and `lint.py --version` output
+
+### The independence record (per role, verdict at the minimum)
+
+One recorded level cannot say WHICH role ran weak. "Level 2" over a whole gate hides
+a tester that shared the writer's session, and that is the role whose independence
+the exam's meaning rests on. The report therefore records every role separately:
+
+| Role | Provider | Model id | Context | Permitted inputs | Relation to writer | Level |
+|---|---|---|---|---|---|---|
+
+One row per role the instrument names (extractor, candidate generator, exam writer,
+tester, blind reader, second auditor). Per column:
+
+- **Provider / Model id:** the exact id string the runtime reports, never a family
+  name; "same model" blind spots are only auditable from exact ids.
+- **Context:** what isolated it: a fresh subagent (with its identity if the runtime
+  gives one), a forked context, or the same continuous session.
+- **Permitted inputs:** what the role was actually given, so a blinding breach is
+  visible in the record rather than remembered.
+- **Relation to writer:** none, same provider, same model, same session; the writer
+  here is whoever built the wiki content under audit.
+- **Level:** the quality-loop ladder rung this role actually ran at.
+
+**The verdict's level is the minimum across the rows.** Independence fails at its
+weakest link: one role that shared the writer's context caps the whole audit at
+level 0, whatever the other five achieved. The card reports that minimum; the table
+under it says where the minimum came from.
 
 ## Conversion ledger contract
 
