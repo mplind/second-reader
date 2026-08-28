@@ -722,7 +722,14 @@ def baseline_write(path, root, phase, results):
     identities = finding_identities(results)
     payload = {"lint_version": LINT_VERSION, "phase": phase,
                "findings": identities}
-    target.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    try:
+        target.write_text(json.dumps(payload, indent=2) + "\n",
+                          encoding="utf-8")
+    except OSError as e:
+        # A missing parent, a directory target, a permission wall: all are
+        # caller problems, reported like any other usage error, never as a
+        # traceback and never as exit 1 (which always means findings).
+        return usage_error("cannot write baseline %s (%s)" % (path, e))
     print("baseline written: %d finding identities -> %s"
           % (len(identities), path))
     return 0

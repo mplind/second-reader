@@ -213,6 +213,15 @@ class TestBaseline(VaultCase):
                           str(self.tmp / "baseline.json"))
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
 
+    def test_unwritable_destination_exits_2(self):
+        # A missing parent directory (or any OS-level write failure) is a
+        # usage problem, reported on stderr with exit 2, never a traceback.
+        bad = str(self.tmp) + "-no-such-dir/baseline.json"
+        r = self.run_lint("--phase", "content", "--baseline-write", bad)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("baseline", r.stderr)
+
     def test_phase_mismatch_refused(self):
         self.baseline("--baseline-write")
         r = self.run_lint("--baseline-compare", self.base)
