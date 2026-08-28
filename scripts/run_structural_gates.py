@@ -59,6 +59,15 @@ def main():
                     help="QT questions per chunk (default 8)")
     args = ap.parse_args()
 
+    # The fresh-run contract: an absent or empty directory is acceptable,
+    # anything else is refused before the first gate runs. The underlying
+    # scripts refuse their own filenames; this refuses everything, because a
+    # run directory holding any earlier artifact is not this run's directory.
+    if os.path.isdir(args.run_dir) and os.listdir(args.run_dir):
+        print(f"REFUSED: run directory is not empty: {args.run_dir}")
+        print("Each run gets its own fresh directory, one per source and "
+              "seed revision.")
+        sys.exit(2)
     os.makedirs(args.run_dir, exist_ok=True)
     brief = os.path.join(args.run_dir, "tester-brief.md")
 

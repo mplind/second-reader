@@ -383,6 +383,17 @@ class TestStructuralGates(Workspace):
         self.assertEqual(r.returncode, 2,
                          "a second run into the same directory must refuse")
 
+    def test_nonempty_run_dir_refused_before_any_gate(self):
+        # The fresh-run contract holds for ANY pre-existing content, not just
+        # filenames the pipeline would collide with: refuse before gate 1.
+        run_dir = os.path.join(self.tmp, "run1")
+        os.makedirs(run_dir)
+        self.write(os.path.join(run_dir, "notes.md"), "left by someone\n")
+        r = self.gates(run_dir)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertNotIn("SEED OK", r.stdout,
+                         "refusal must happen before the seed gate runs")
+
     def test_failing_seed_stops_the_pipeline(self):
         text = self.read(self.exam)
         self.write(self.exam, text[:text.index("## NC1")].rstrip() + "\n")
