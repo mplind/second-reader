@@ -316,6 +316,10 @@ leaves no torn half), and each writing step records a run manifest
 sha256 of its input and of every output. The manifests chain: exam to brief, brief
 to chunks, so any artifact resolves back to the exact seed it came from.
 
+`scripts/run_structural_gates.py` runs steps 1-3 below as one command into a fresh
+run directory and stops before dispatch and grading; `references/runbook.md` holds
+the operator's full order with the artifacts that prove each step.
+
 Run order for one source:
 
 1. **`verify_exam_seed.py <ledger.json> <exam.md> [<durable.txt>]`**, the seed gate. Run

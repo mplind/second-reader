@@ -356,6 +356,44 @@ class TestRunIsolation(Workspace):
         self.no_temp_residue()
 
 
+class TestStructuralGates(Workspace):
+    """run_structural_gates.py: the one entry point for the deterministic
+    gates, in order, stopping before anything that grades."""
+
+    def gates(self, run_dir, *extra):
+        return run("run_structural_gates.py", self.ledger, self.exam,
+                   self.durable, "--run-dir", run_dir,
+                   "--chunk-size", "2", *extra)
+
+    def test_runs_gates_in_order_and_stops_before_grading(self):
+        run_dir = os.path.join(self.tmp, "run1")
+        r = self.gates(run_dir)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        for name in ("tester-brief.md", "tester-brief.md.run.json",
+                     "tester-brief-chunk-1.md", "tester-brief-chunk-2.md",
+                     "tester-brief-controls.md", "tester-brief-run.json"):
+            self.assertTrue(os.path.exists(os.path.join(run_dir, name)), name)
+        self.assertIn("stopping before dispatch and grading", r.stdout)
+
+    def test_dirty_run_dir_refused(self):
+        run_dir = os.path.join(self.tmp, "run1")
+        r = self.gates(run_dir)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = self.gates(run_dir)
+        self.assertEqual(r.returncode, 2,
+                         "a second run into the same directory must refuse")
+
+    def test_failing_seed_stops_the_pipeline(self):
+        text = self.read(self.exam)
+        self.write(self.exam, text[:text.index("## NC1")].rstrip() + "\n")
+        run_dir = os.path.join(self.tmp, "run1")
+        r = self.gates(run_dir)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertFalse(
+            os.path.exists(os.path.join(run_dir, "tester-brief.md")),
+            "a failed seed gate must not produce a brief")
+
+
 class TestSeedGate(Workspace):
     def seed(self, *args):
         return run("verify_exam_seed.py", self.ledger, self.exam, self.durable,

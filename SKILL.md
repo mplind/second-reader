@@ -477,6 +477,7 @@ is aggregating the pattern, so the same class will recur indefinitely.
 |---|---|
 | `references/quality-loop.md` | Before your first ingest and before validating anything. The loop, the two passes, the validator's checklist, the independence ladder. |
 | `references/coverage-instrument.md` | Before validating an ingest. The measurable coverage bar: counters, closed-book exam, blind reader, exam pipeline tooling. |
+| `references/runbook.md` | When operating the deterministic gates: command order, the one entry point, and the artifacts that prove each step. |
 | `references/vault-gate.md` | Before running the whole-vault audit. |
 | `references/lint.md` | The lint check spec and fixture contract. |
 | `references/vault-templates.md` | At scaffold, and when generating a tutor pack. Starter file contents plus the pack template. |
