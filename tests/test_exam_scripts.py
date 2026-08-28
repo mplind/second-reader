@@ -394,6 +394,16 @@ class TestStructuralGates(Workspace):
         self.assertNotIn("SEED OK", r.stdout,
                          "refusal must happen before the seed gate runs")
 
+    def test_run_dir_that_is_a_file_refused(self):
+        # A regular file at the --run-dir path is a caller mistake, refused
+        # with a message rather than an unhandled makedirs error.
+        run_path = os.path.join(self.tmp, "run1")
+        self.write(run_path, "a file, not a directory\n")
+        r = self.gates(run_path)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("not a directory", r.stdout)
+
     def test_failing_seed_stops_the_pipeline(self):
         text = self.read(self.exam)
         self.write(self.exam, text[:text.index("## NC1")].rstrip() + "\n")

@@ -63,6 +63,9 @@ def main():
     # anything else is refused before the first gate runs. The underlying
     # scripts refuse their own filenames; this refuses everything, because a
     # run directory holding any earlier artifact is not this run's directory.
+    if os.path.exists(args.run_dir) and not os.path.isdir(args.run_dir):
+        print(f"REFUSED: --run-dir exists and is not a directory: {args.run_dir}")
+        sys.exit(2)
     if os.path.isdir(args.run_dir) and os.listdir(args.run_dir):
         print(f"REFUSED: run directory is not empty: {args.run_dir}")
         print("Each run gets its own fresh directory, one per source and "
