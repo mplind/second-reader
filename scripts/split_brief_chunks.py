@@ -20,7 +20,7 @@ block) is copied verbatim into every output so each chunk is self-contained.
 
 Usage:
     python3 split_brief_chunks.py <brief.md> [--chunk-size N] [--out-dir DIR]
-                                  [--prefix NAME] [--verify-only]
+                                  [--prefix NAME] [--verify-only] [--overwrite]
 
 Defaults: chunk size 8, out-dir is the input's directory, prefix is the input's
 basename minus '.md'. --verify-only writes nothing and re-checks the existing
@@ -30,6 +30,13 @@ after the split.
 Writes:
     <out-dir>/<prefix>-chunk-1..K.md   real questions, contiguous QT runs of --chunk-size
     <out-dir>/<prefix>-controls.md     all NC blocks in their original order
+    <out-dir>/<prefix>-run.json        manifest: sha256 of the brief and of every output
+
+Run isolation: give every exam run its own directory, one per source and seed
+revision (see references/coverage-instrument.md, exam pipeline tooling). An
+existing output is refused without --overwrite (exit 2), every file is written
+atomically, and the manifest is written only after the split verifies clean,
+so its presence is itself evidence the run completed.
 
 Prints the QT/NC header list of every output file. Exits nonzero if any source
 block (QT or NC) is missing from the outputs, duplicated, or out of range. The
@@ -46,6 +53,8 @@ import argparse
 import os
 import re
 import sys
+
+from exam_io import atomic_write, preexisting, write_run_manifest
 
 BLOCK = re.compile(r"^## (QT|NC)(\d+)")
 
@@ -88,8 +97,7 @@ def output_paths(out_dir, prefix, n_qt, chunk_size, has_nc):
 
 def write_file(path, preamble, blocks):
     parts = ([preamble] if preamble else []) + [text for _, _, text in blocks]
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("\n\n---\n\n".join(parts) + "\n")
+    atomic_write(path, "\n\n---\n\n".join(parts) + "\n")
 
 
 def normalize(text):
@@ -164,6 +172,8 @@ def main():
                     help="output filename prefix (default: brief basename minus .md)")
     ap.add_argument("--verify-only", action="store_true",
                     help="write nothing; re-check existing outputs against the brief")
+    ap.add_argument("--overwrite", action="store_true",
+                    help="replace outputs left by an earlier run instead of refusing")
     args = ap.parse_args()
 
     if not os.path.exists(args.brief):
@@ -186,7 +196,13 @@ def main():
     ncs = [b for b in blocks if b[0] == "NC"]
 
     paths = output_paths(out_dir, prefix, len(qts), args.chunk_size, bool(ncs))
+    manifest = os.path.join(out_dir, f"{prefix}-run.json")
     if not args.verify_only:
+        held = preexisting(paths + [manifest], args.overwrite)
+        if held:
+            print("REFUSED: output exists from an earlier run "
+                  "(pass --overwrite to replace it):", ", ".join(held))
+            sys.exit(2)
         os.makedirs(out_dir, exist_ok=True)
         chunk_paths = [p for p in paths if "-chunk-" in os.path.basename(p)]
         for k, start in enumerate(range(0, len(qts), args.chunk_size)):
@@ -202,6 +218,11 @@ def main():
         for p in problems:
             print(p)
         sys.exit(1)
+    if not args.verify_only:
+        # Written only after a clean verify: the manifest's presence is
+        # itself evidence the split completed.
+        write_run_manifest(manifest, "split_brief_chunks.py", args.brief,
+                           paths, extra={"chunk_size": args.chunk_size})
     print("SPLIT OK: every source block present exactly once across the outputs")
     sys.exit(0)
 

@@ -280,6 +280,82 @@ class TestSplitIntegrity(Workspace):
                          "altered question wording under an intact header must fail")
 
 
+class TestRunIsolation(Workspace):
+    """Concurrent or repeated runs must never silently clobber each other's
+    artifacts: outputs are refused when they already exist, written atomically,
+    and tied to their input by a hash manifest."""
+
+    def no_temp_residue(self):
+        stray = [n for n in os.listdir(self.tmp) if ".tmp" in n]
+        self.assertEqual(stray, [], "temp files left behind")
+
+    def test_brief_refuses_existing_output(self):
+        brief = os.path.join(self.tmp, "brief.md")
+        self.write(brief, "sentinel from an earlier run\n")
+        r = run("build_tester_brief.py", self.exam, brief)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertEqual(self.read(brief), "sentinel from an earlier run\n",
+                         "a refused run must not touch the existing file")
+
+    def test_brief_overwrite_flag(self):
+        brief, r = self.build_brief()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = run("build_tester_brief.py", self.exam, brief, "--overwrite")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.no_temp_residue()
+
+    def test_voided_brief_never_lands(self):
+        # Plant a leak the builder cannot rewrite: the run must void AND the
+        # output path must stay empty, so a half-blinded brief can never be
+        # picked up by a later pipeline step.
+        text = self.read(self.exam).replace(
+            "What distance does the artifact state the first recorded ride covered?",
+            "This question is a NEGATIVE CONTROL in disguise.")
+        self.write(self.exam, text)
+        brief = os.path.join(self.tmp, "brief.md")
+        r = run("build_tester_brief.py", self.exam, brief)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertFalse(os.path.exists(brief),
+                         "a voided brief must not exist on disk")
+        self.no_temp_residue()
+
+    def test_brief_manifest_ties_output_to_seed(self):
+        import hashlib, json
+        brief, r = self.build_brief()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        manifest = json.load(open(brief + ".run.json", encoding="utf-8"))
+        def digest(p):
+            return hashlib.sha256(open(p, "rb").read()).hexdigest()
+        self.assertEqual(manifest["input"]["sha256"], digest(self.exam))
+        self.assertEqual(manifest["outputs"][0]["sha256"], digest(brief))
+
+    def test_split_refuses_existing_outputs(self):
+        brief, r = self.build_brief()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        chunk1 = os.path.join(self.tmp, "brief-chunk-1.md")
+        self.write(chunk1, "sentinel from an earlier run\n")
+        r = run("split_brief_chunks.py", brief, "--chunk-size", "2")
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertEqual(self.read(chunk1), "sentinel from an earlier run\n")
+
+    def test_split_overwrite_flag_and_manifest(self):
+        import hashlib, json
+        brief, r = self.build_brief()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = run("split_brief_chunks.py", brief, "--chunk-size", "2")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = run("split_brief_chunks.py", brief, "--chunk-size", "2",
+                "--overwrite")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        manifest = json.load(open(os.path.join(self.tmp, "brief-run.json"),
+                                  encoding="utf-8"))
+        self.assertEqual(
+            manifest["input"]["sha256"],
+            hashlib.sha256(open(brief, "rb").read()).hexdigest())
+        self.assertEqual(len(manifest["outputs"]), 3)  # 2 chunks + controls
+        self.no_temp_residue()
+
+
 class TestSeedGate(Workspace):
     def seed(self, *args):
         return run("verify_exam_seed.py", self.ledger, self.exam, self.durable,

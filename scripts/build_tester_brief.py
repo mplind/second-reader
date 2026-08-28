@@ -20,19 +20,28 @@ instructs the tester to answer in exactly the format verify_answer_files.py
 parses, so step 5 can gate the deliverable mechanically.
 
 Usage:
-    python3 build_tester_brief.py <exam.md> [<out.md>]
+    python3 build_tester_brief.py <exam.md> [<out.md>] [--overwrite]
 Default out: <exam>-tester-brief.md (same dir).
 
 It ASSERTS zero leak of tell-words AND that every block in the source exam
 survived into the brief, counted per prefix (QT/NC). An NC block silently
 dropped has nothing to leak, so atmosphere-leak checking alone cannot catch it.
 Exits nonzero on a leak, a count mismatch, or a block left without question
-prose.
+prose, and a voided brief is never written: the checks run before the write,
+so no half-blinded file can land where a later step would pick it up.
+
+Run isolation: give every exam run its own directory, one per source and
+seed revision (see references/coverage-instrument.md, exam pipeline tooling).
+An existing output is refused without --overwrite (exit 2), the brief is
+written atomically, and a manifest at <out>.run.json records the sha256 of
+the exam and of the brief, tying the artifact to its seed.
 """
 import re
 import sys
 import os
 from collections import Counter
+
+from exam_io import atomic_write, preexisting, write_run_manifest
 
 # Fragments that mark ANSWER KEY / metadata content. Ends the question body
 # when seen on a line. This list must cover EVERY key/metadata field the exam
@@ -56,7 +65,13 @@ NC_HEADER = re.compile(r"\s*\[NEGATIVE CONTROL\]\s*")
 Q_BLOCK = re.compile(r"^## (QT|NC)\d+")  # adapt to your exam's header scheme
 
 
-def build_tester_brief(exam, out):
+def build_tester_brief(exam, out, overwrite=False):
+    manifest = out + ".run.json"
+    held = preexisting([out, manifest], overwrite)
+    if held:
+        print("REFUSED: output exists from an earlier run "
+              "(pass --overwrite to replace it):", ", ".join(held))
+        sys.exit(2)
     lines = open(exam, encoding="utf-8").read().splitlines()
     blocks, cur = [], None
     for ln in lines:
@@ -143,8 +158,6 @@ def build_tester_brief(exam, out):
         "run.\n\n---\n\n"
     )
     text = pre + "\n\n---\n\n".join(out_q)
-    with open(out, "w", encoding="utf-8") as f:
-        f.write(text)
 
     # Verdict 1: assert zero leak of any control/answer tell.
     # Observed in the campaign that hardened this skill: a writer once labeled
@@ -181,16 +194,22 @@ def build_tester_brief(exam, out):
         print("MISSING QUESTION PROSE (TEST VOIDED, headings/metadata are not questions):",
               ", ".join(missing_prose))
         sys.exit(1)
+    # All verdicts clean: only now does anything land on disk.
+    atomic_write(out, text)
+    write_run_manifest(manifest, "build_tester_brief.py", exam, [out],
+                       extra={"blocks": dict(brief_counts)})
     total = sum(brief_counts.values())
     print(f"CLEAN: no answer-key/control-tell leaked; all {total} blocks "
           f"({dict(brief_counts)}) preserved")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    argv = [a for a in sys.argv[1:] if a != "--overwrite"]
+    force = "--overwrite" in sys.argv[1:]
+    if not argv:
         print(__doc__)
         sys.exit(2)
-    ex = sys.argv[1]
-    out = sys.argv[2] if len(sys.argv) > 2 else \
+    ex = argv[0]
+    out = argv[1] if len(argv) > 1 else \
         os.path.splitext(ex)[0] + "-tester-brief.md"
-    build_tester_brief(ex, out)
+    build_tester_brief(ex, out, overwrite=force)

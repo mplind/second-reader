@@ -305,6 +305,17 @@ stdlib-only structural gates, and every one exits non-zero on failure so it can 
 next dispatch. **Scripts are run, not read into context.** They are tools; treat their
 output as the deliverable.
 
+**One run, one directory.** Every exam run writes its artifacts (brief, chunks,
+controls, answer files) into its own directory, unique per source and seed revision,
+e.g. `ops/exam/<source>-<revision>/`. Two runs sharing a directory is how one run's
+stale chunk becomes another run's evidence. The scripts enforce this: an output that
+already exists is refused (exit 2) unless `--overwrite` says the clobber is
+deliberate, files are written atomically (temp file, then rename, so a cut-off run
+leaves no torn half), and each writing step records a run manifest
+(`<out>.run.json` for the brief, `<prefix>-run.json` for the split) carrying the
+sha256 of its input and of every output. The manifests chain: exam to brief, brief
+to chunks, so any artifact resolves back to the exact seed it came from.
+
 Run order for one source:
 
 1. **`verify_exam_seed.py <ledger.json> <exam.md> [<durable.txt>]`**, the seed gate. Run
