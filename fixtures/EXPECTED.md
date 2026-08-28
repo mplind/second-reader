@@ -12,14 +12,6 @@ this file is re-verified and re-recorded.
 
 Run from the repository root.
 
-**Changing this file requires a stated semantic reason.** Every edit to a recorded
-block means lint or a fixture changed behaviour; the commit that re-records it must
-say which behaviour changed and why the new output is the correct one. A re-record
-whose commit message only says the output drifted is a contract change smuggled past
-review. The byte comparison catches drift; it cannot judge intent, so the commit
-message carries that half, and `tests/test_lint.py` holds the per-check behavioural
-tests that fail on a weakened check even when this file is regenerated to match.
-
 ## `python3 ops/lint.py fixtures/clean-vault`
 
 ```
