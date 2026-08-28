@@ -114,7 +114,16 @@ Negative controls: 6/6.
 
 **Lint:** clean (run after the cycle 2 fixes, before this validation).
 
-**Cycles run:** 2 of 5. Committed at `3f81c2e` in the vault's own history.
+**Cycles run:** 2 of 5.
+
+**Provenance seal** (two-step: the exam run writes the MANIFEST line via
+`python3 scripts/manifest_hash.py <vault>`; whoever commits replaces `pending`
+with the commit id from the vault's own history):
+
+```
+MANIFEST sha256:b0cdec11b180be364fe5991bd6b146f4e2be2fdfd666c84a1d5253a0083b8296
+COMMIT 3f81c2e
+```
 
 ---
 

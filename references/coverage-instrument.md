@@ -570,6 +570,30 @@ comparison.
   `references/vault-gate.md`). A source whose gate claimed a claim count but has no ledger
   is not fully signed off.
 
+### The provenance seal (two-step, because the commit id does not exist yet)
+
+The exam runs before the commit, so a report that records only a commit hash records
+something the run could not have known, and a placeholder left in that field turns
+"committed" into an assertion. Every report therefore carries a two-step record:
+
+```
+MANIFEST sha256:<64 hex>
+COMMIT pending
+```
+
+- **Step 1, written by the exam run itself:** the MANIFEST line, computed by
+  `python3 scripts/manifest_hash.py <vault>` (sha256 over the sorted per-file hash
+  lines `<sha256(file)>  <relpath>` for `AGENTS.md` and everything under `wiki/`).
+  It is immutable evidence of the exact content the exam examined, and nobody edits
+  it afterwards.
+- **Step 2, appended by whoever commits:** replace `pending` with the commit id.
+  **Sign-off is not valid evidence while `pending` remains**; a report claiming
+  SIGN-OFF over a placeholder fails the seal check.
+- `python3 scripts/verify_report_seal.py <report.md>` enforces the structure: one
+  well-formed MANIFEST line, one COMMIT line, and no SIGN-OFF over a pending commit.
+  To audit the manifest itself, re-run `manifest_hash.py` against the vault at the
+  recorded commit and compare.
+
 ---
 
 ## Report format (MANDATORY, every source, no exceptions)
@@ -600,7 +624,8 @@ Below the card, every source report contains, without exception:
   score, and any qualifier residuals individually named
 - blind reader findings, itemised
 - THIN items and which second auditor cleared them (with reason)
-- cycles run, and the commit hash
+- cycles run, and the provenance seal (below): the `MANIFEST sha256:` line the exam
+  run wrote and the `COMMIT` line appended at commit time
 - the validator's independence level (the quality-loop ladder), as `level N (<rung>)`
 - the protocol version (from `SKILL.md` frontmatter) and `lint.py --version` output
 
