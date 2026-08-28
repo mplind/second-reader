@@ -1,11 +1,20 @@
 # Planted defects
 
 This vault is deliberately broken: one planted defect for every lint check that can
-have one (15 plants across 15 of the 16 checks; vault-walk has no plant because the
-fixture ships no symlinks), plus two plants lint cannot catch that exist for the
-semantic validator. `ops/lint.py` must exit
+have one (15 plants across 15 of the 16 checks), plus two plants lint cannot catch
+that exist for the semantic validator. `ops/lint.py` must exit
 1 on this vault and report every lint plant below. If it does not, lint is broken, not
 the vault.
+
+vault-walk carries no plant: its defects (a directory symlink, an invalid-UTF-8 file)
+would not survive every checkout as stored fixture content, so `tests/test_lint.py`
+creates both at test time instead. The check is covered; the fixture just cannot be
+its carrier.
+
+A primary plant may produce secondary findings in other checks; the plants 7 and 12
+interaction below is the shipped example. When adding a plant, trace its shadows and
+record the full expected output in `fixtures/EXPECTED.md` rather than assuming one
+plant means one finding.
 
 Lint output line numbers are as reported by `ops/lint.py`; where the defect physically
 lives at a different line than lint anchors its finding, both are given.

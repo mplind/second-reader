@@ -35,6 +35,15 @@ the documented findings. If either assertion inverts, lint is broken. The pair c
 both false-negatives (missed defects) and false-positives (a check that flags
 everything).
 
+Re-recording `fixtures/EXPECTED.md` requires a stated semantic reason in the commit
+that changes it: which behaviour changed, and why the new output is correct. The byte
+comparison proves drift happened; only the commit message can prove it was meant. The
+per-check behavioural tests in `tests/test_lint.py` back this up: they exercise each
+check on crafted inputs, so a weakened check fails a named test even when EXPECTED.md
+is regenerated to match it. vault-walk's defects are covered there at runtime (the
+test creates the symlink and the invalid-UTF-8 file), because neither survives every
+checkout as stored fixture content.
+
 ## The checks (every one, no silent omission)
 
 1. **Wikilink resolution.** Every `[[link]]` target resolves to an existing page by

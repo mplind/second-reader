@@ -256,6 +256,100 @@ class TestSourceStatus(VaultCase):
         self.assertIn("field-note", found[0][2])
 
 
+class TestVaultWalk(VaultCase):
+    """The dirty fixture leaves vault-walk unplanted on purpose: a stored
+    symlink or invalid-UTF-8 file would not survive every checkout. These
+    tests create both defects at runtime instead."""
+
+    def test_unreadable_file_is_a_walk_finding(self):
+        (self.tmp / "wiki" / "concepts").mkdir()
+        (self.tmp / "wiki" / "concepts" / "broken.md").write_bytes(
+            b"\xff\xfe not utf-8 \x80")
+        vault = sr_lint.Vault(self.tmp)
+        found = sr_lint.check_vault_walk(vault)
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("unreadable file (invalid UTF-8)", found[0][2])
+        self.assertEqual(found[0][0], "wiki/concepts/broken.md")
+
+    def test_directory_symlink_is_reported_never_followed(self):
+        outside = self.tmp / "outside"
+        outside.mkdir()
+        self.write("outside/hidden.md", "# Hidden\n\n[[Nowhere at all]]\n")
+        os.symlink(outside, self.tmp / "wiki" / "linked",
+                   target_is_directory=True)
+        vault = sr_lint.Vault(self.tmp)
+        found = sr_lint.check_vault_walk(vault)
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("symlinked directory not scanned", found[0][2])
+        # Never followed: the page behind the link is invisible to every
+        # check, which is exactly why the walk finding must exist.
+        self.assertEqual(sr_lint.check_wikilink_resolution(vault), [])
+
+
+class TestCheckBehaviour(VaultCase):
+    """Function-level tests on crafted inputs, beyond the byte-pinned fixture
+    runs: each asserts the behaviour a check exists for, so weakening the
+    check breaks a named test rather than only an output diff."""
+
+    def one_page(self, body, name="wiki/concepts/crafted.md", title="Crafted"):
+        self.write(name, page(title, "concept", body,
+                              sources='["raw/inbox/history.md"]'))
+        return sr_lint.Vault(self.tmp)
+
+    def test_split_wikilink_detected(self):
+        v = self.one_page("# Crafted\n\nSee [[Penny\nFarthing]] for detail.\n")
+        found = sr_lint.check_split_wikilinks(v)
+        self.assertEqual(len(found), 1, found)
+
+    def test_malformed_as_of_date_detected(self):
+        v = self.one_page("# Crafted\n\nShare was 40% (as_of: last-spring).\n")
+        found = sr_lint.check_as_of_dating(v)
+        self.assertTrue(any("as_of without a YYYY-MM-DD date" in m
+                            for _, _, m in found), found)
+
+    def test_undated_measured_figure_detected(self):
+        v = self.one_page("# Crafted\n\nThe market holds ~700 machines.\n")
+        found = sr_lint.check_as_of_dating(v)
+        self.assertEqual(len(found), 1, found)
+
+    def test_dated_measured_figure_is_clean(self):
+        v = self.one_page(
+            "# Crafted\n\nThe market holds ~700 machines (as_of: 2026-08-13).\n")
+        self.assertEqual(sr_lint.check_as_of_dating(v), [])
+
+    def test_alias_claiming_another_pages_identity_detected(self):
+        self.write("wiki/concepts/safety-bicycle.md",
+                   page("Safety bicycle", "concept", "# Safety bicycle\n",
+                        sources='["raw/inbox/history.md"]'))
+        self.write("wiki/concepts/gearing.md",
+                   "---\ntitle: Gearing\ntype: concept\ncreated: 2026-08-13\n"
+                   "updated: 2026-08-13\nsources: [\"raw/inbox/history.md\"]\n"
+                   "tags: [test]\nconfidence: high\n"
+                   "aliases: [Safety bicycle]\n---\n# Gearing\n")
+        found = sr_lint.check_name_variance(sr_lint.Vault(self.tmp))
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("safety bicycle", found[0][2])
+
+    def test_separator_variant_filenames_detected(self):
+        for name in ("wiki/concepts/chain-drive.md",
+                     "wiki/concepts/chain_drive.md"):
+            self.write(name, page("x", "concept", "# x\n",
+                                  sources='["raw/inbox/history.md"]'))
+        found = sr_lint.check_filename_collision(sr_lint.Vault(self.tmp))
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("filename collision", found[0][2])
+
+    def test_unresolved_temporal_change_entry_detected(self):
+        self.write("wiki/contradictions.md",
+                   page("Contradictions", "synthesis",
+                        "# Contradictions\n\n### Gear counts differ\n\n"
+                        "- Kind: temporal-change\n- Status: unresolved\n"
+                        "- Pages: [[Crafted]]\n"))
+        found = sr_lint.check_contradiction_kind(sr_lint.Vault(self.tmp))
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("marked unresolved", found[0][2])
+
+
 class TestVersionFlag(VaultCase):
     def test_version_flag(self):
         r = subprocess.run([PY, str(LINT), "--version"],
