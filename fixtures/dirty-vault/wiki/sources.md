@@ -17,4 +17,4 @@ Every file in `raw/` and its processing status. Status is one of `unprocessed`,
 |---|---|---|---|---|
 | `raw/inbox/bicycle-history-excerpt.md` | text | processed | [[Bicycle history excerpt]], [[Safety bicycle]] | 2026-08-11 |
 | `raw/inbox/tire-market-note.md` | text | processed | [[Pneumatic tires]] | 2026-08-12 |
-| `raw/inbox/cycling-growth-note.md` | text | pending | | 2026-08-12 |
+| `raw/inbox/cycling-growth-note.md` | text | pending (awaiting scan) | | 2026-08-12 |

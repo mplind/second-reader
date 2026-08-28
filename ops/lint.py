@@ -96,6 +96,15 @@ def kebab_key(stem):
     return re.sub(r"[\s_]+", "-", stem.lower())
 
 
+def status_token(cell):
+    """Leading canonical token of a sources.md status cell.
+
+    A status cell may carry a trailing explanation ('processed (sections 1-2
+    only)'); the leading token alone decides legality, and an annotation never
+    legalizes an unknown token."""
+    return re.split(r"[\s(]+", cell.strip(), maxsplit=1)[0].lower()
+
+
 # ---------------------------------------------------------------------------
 # Vault model
 # ---------------------------------------------------------------------------
@@ -273,7 +282,7 @@ class Vault:
                 self.malformed_source_rows.append(n)
                 continue
             name = cells[0].strip("`").strip()
-            status = cells[2].strip("`").strip().lower()
+            status = cells[2].strip("`").strip()
             if not name.strip("_ ") or name.strip("_ ").lower() == "none yet":
                 continue                    # scaffold placeholder row
             rows.append((n, name, status))
@@ -464,7 +473,7 @@ def check_synthesis_currency(v):
         return findings
     text = synth.body_text().lower()
     for _, name, status in rows:
-        if status != "processed":
+        if status_token(status) != "processed":
             continue
         stem = Path(name).stem.lower()
         if name.lower() not in text and stem not in text:
@@ -598,10 +607,11 @@ def check_source_status(v):
     if page is None:
         return findings   # absence is the stub check's finding
     for n, name, status in v.source_rows():
-        if status not in LEGAL_SOURCE_STATUS:
+        token = status_token(status)
+        if token not in LEGAL_SOURCE_STATUS:
             findings.append((page.rel, n,
                              "illegal status '%s' for %s (legal: %s)"
-                             % (status, name, ", ".join(sorted(LEGAL_SOURCE_STATUS)))))
+                             % (token, name, ", ".join(sorted(LEGAL_SOURCE_STATUS)))))
     for n in v.malformed_source_rows:
         findings.append((page.rel, n,
                          "malformed row (fewer than 3 cells): no status to check"))

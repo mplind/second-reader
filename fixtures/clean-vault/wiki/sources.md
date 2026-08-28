@@ -15,4 +15,4 @@ Every file in `raw/` and its processing status. Status is one of `unprocessed`,
 
 | Source file | Type | Status | Pages produced | Ingested |
 |---|---|---|---|---|
-| `raw/inbox/bicycle-history-excerpt.md` | text | processed | [[Bicycle history excerpt]], [[Safety bicycle]], [[When did chain drive appear]] | 2026-08-10 |
+| `raw/inbox/bicycle-history-excerpt.md` | text | processed (whole excerpt) | [[Bicycle history excerpt]], [[Safety bicycle]], [[When did chain drive appear]] | 2026-08-10 |

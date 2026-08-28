@@ -83,8 +83,12 @@ everything).
     `working memory.md`) are flagged as probable duplicates. Case-insensitive wikilink
     resolution (check 1) makes the pair silently interchangeable, so half the vault's
     links can land on one copy and half on the other while both drift.
-14. **Source status legality.** Every data row in `sources.md` carries a status from
-    `unprocessed`, `in-progress`, `processed`. Anything else fails. This exists to
+14. **Source status legality.** Every data row in `sources.md` carries a status whose
+    leading token is one of `unprocessed`, `in-progress`, `processed`. The cell may
+    append an explanation after the token (`processed (sections 1-2 only)`); the token
+    alone decides legality, and check 8 reads the same token, so an annotated
+    `processed` row is still held to synthesis currency. An unknown leading token
+    fails, annotated or not. This exists to
     protect check 8, which keys off `processed`: an unrecognized status would silently
     exempt a source from the synthesis-currency check, and a silent exemption is the
     exact failure mode this instrument exists to prevent.

@@ -141,6 +141,43 @@ class TestConfidenceSeparation(VaultCase):
                          "full processing must not forbid low confidence")
 
 
+class TestSourceStatus(VaultCase):
+    def sources(self, status):
+        self.write("wiki/sources.md",
+                   page("Sources", "synthesis",
+                        "# Sources\n\n| Source file | Type | Status | Pages "
+                        "produced | Ingested |\n|---|---|---|---|---|\n"
+                        "| raw/inbox/field-note.md | note | %s | "
+                        "[[Field note]] | 2026-08-13 |\n" % status))
+
+    def test_annotated_legal_status_is_clean(self):
+        # A status cell may carry a trailing explanation after the canonical
+        # token; the token alone decides legality.
+        self.sources("processed (sections 1-2 only)")
+        vault = sr_lint.Vault(self.tmp)
+        self.assertEqual(sr_lint.check_source_status(vault), [])
+
+    def test_annotated_unknown_token_still_fails(self):
+        # An annotation never legalizes an unknown token.
+        self.sources("pending (awaiting scan)")
+        vault = sr_lint.Vault(self.tmp)
+        found = sr_lint.check_source_status(vault)
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("illegal status 'pending'", found[0][2])
+
+    def test_annotated_processed_feeds_synthesis_currency(self):
+        # check 8 keys off 'processed'; an annotated processed row must not
+        # be silently exempt from it.
+        self.sources("processed (sections 1-2 only)")
+        self.write("wiki/synthesis.md",
+                   page("Synthesis", "synthesis",
+                        "# Synthesis\n\nNothing here mentions the source.\n"))
+        vault = sr_lint.Vault(self.tmp)
+        found = sr_lint.check_synthesis_currency(vault)
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("field-note", found[0][2])
+
+
 class TestVersionFlag(VaultCase):
     def test_version_flag(self):
         r = subprocess.run([PY, str(LINT), "--version"],
